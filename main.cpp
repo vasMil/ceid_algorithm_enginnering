@@ -68,6 +68,26 @@ void addComplementaryEdges(leda::graph& G) {
     }
 }
 
+bool my_bipar_checker(const leda::graph& G, leda::list<leda::node>& V1, leda::list<leda::node>& V2) {
+    // Helping nodes and edges
+    leda::edge e;
+    leda::node v, u;
+
+    // Initialize node_arrays and the starting node and execute my_BFS()
+    leda::node s = G.first_node();
+    leda::node_array<int> dist(G, -1);
+    leda::node_array<leda::edge> pred(G);
+    leda::node_array<std::string> color(G);
+    my_BFS(G, s, dist, pred, color);
+
+    forall_edges(e, G) {
+        v = G.source(e);
+        u = G.target(e);
+        if (color[v] == color[u]) {
+            return false;
+        }
+    }
+}
 
 int main(int argc, char *argv[]) {
     leda::node v;
