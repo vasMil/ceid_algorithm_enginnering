@@ -5,6 +5,7 @@
 #include <set>
 
 void printGraph(const leda::graph& G) {
+    std::cout << "Printing Graph..." << std::endl;
     leda::edge e;
     leda::node s, t;
     forall_edges(e, G) {

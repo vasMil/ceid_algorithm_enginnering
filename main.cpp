@@ -68,16 +68,22 @@ bool my_bipar_checker(const leda::graph& G, leda::list<leda::node>& V1, leda::li
 
 int main(int argc, char *argv[]) {
     leda::node v;
-
+    leda::list<leda::node> V1;
+    leda::list<leda::node> V2;
     // Initialize a random graph G
     leda::graph G;
     // void random_graph(graph& G, int n, int m, bool no_anti_parallel_edges, bool loopfree, bool no_parallel_edges)
     leda::random_graph(G, NUM_OF_NODES, NUM_OF_EDGES, true, true, true);
-    G.is_directed() ? std::cout << "G is directed" << std::endl : std::cout << "G is undirected" << std::endl;
-    G.make_undirected(); std::cout << "Making G undirected, using LEDA" << std::endl;
-    G.is_directed() ? std::cout << "G is directed" << std::endl : std::cout << "G is undirected" << std::endl;
     printGraph(G);
-    addComplementaryEdges(G); std::cout << "Adding complementart edges to an undirected graph: " << std::endl; 
-    G.is_directed() ? std::cout << "G is directed" << std::endl : std::cout << "G is undirected" << std::endl;
-    printGraph(G);
+    leda::Is_Bipartite(G, V1, V2) ? std::cout << "G is bipartite" << std::endl : std::cout << "G is not bipartite" << std::endl;
+    
+    std::cout << "Print leda's V1" << std::endl;
+    for(auto it = V1.begin(); it != V1.end(); it++) {
+        std::cout << (*it)->id() << std::endl;
+    }
+
+    std::cout << "Print leda's V2" << std::endl;
+    for(auto it = V2.begin(); it != V2.end(); it++) {
+        std::cout << (*it)->id() << std::endl;
+    }
 }
