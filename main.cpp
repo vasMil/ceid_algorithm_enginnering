@@ -1,6 +1,5 @@
 #include <iostream>
 #include <string>
-#include <set>
 
 #include "utils.h"
 
@@ -45,30 +44,6 @@ leda::list<leda::node> my_BFS(const leda::graph& G, leda::node s, leda::node_arr
     return visitedNodes;
 }
 
-// Converts a graph (either a directed or undirected one) to a directed one, with all initial edges and their anti-parallel edges of the input graph.
-// If there are loops remove them from G.
-// Parallel edges will also be ommited.
-void addComplementaryEdges(leda::graph& G) {
-    if (!G.is_directed()) G.make_directed();
-    leda::edge e;
-    leda::node v, u;
-    // Will ensure no parallel edges exist
-    std::set<std::pair<leda::node, leda::node> > temp;
-    forall_edges(e, G) {
-        v = G.source(e);
-        u = G.target(e);
-
-        G.del_edge(e);
-        if (u == v) continue; // Omit loops
-
-        temp.insert(std::make_pair(v, u));
-    }
-    // Add all edges found (except loops) with their anti-parallel edges
-    for(auto it = temp.begin(); it != temp.end(); it++) {
-        G.new_edge(it->first, it->second);
-        G.new_edge(it->second, it->first);
-    }
-}
 
 bool my_bipar_checker(const leda::graph& G, leda::list<leda::node>& V1, leda::list<leda::node>& V2) {
     // Helping nodes and edges
