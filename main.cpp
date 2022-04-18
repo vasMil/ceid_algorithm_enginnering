@@ -4,12 +4,6 @@
 #include "utils.h"
 
 #include "LEDA/core/queue.h"
-#include "LEDA/graph/basic_graph_alg.h"
-
-#define NUM_OF_NODES 10
-#define NUM_OF_EDGES 5
-#define GREEN "green"
-#define BLUE "blue"
 
 leda::list<leda::node> my_BFS(const leda::graph& G, leda::node s, leda::node_array<int>& dist, leda::node_array<leda::edge>& pred, leda::node_array<std::string>& color) {
     leda::list<leda::node> visitedNodes;
@@ -61,9 +55,26 @@ bool my_bipar_checker(const leda::graph& G, leda::list<leda::node>& V1, leda::li
         v = G.source(e);
         u = G.target(e);
         if (color[v] == color[u]) {
+            // Use BFS' pred node_array to find the common ancestor
+            do {
+                if(dist[v] > dist[u]) {
+                    V1.append(v);
+                    v = G.opposite(v, pred[v]);
+                }
+                else {
+                    V1.append(u);
+                    u = G.opposite(u, pred[u]);
+                }
+            }  while (v != u);
+            V1.append(v);
             return false;
         }
     }
+
+    forall_nodes(v, G) {
+        color[v] == GREEN ? V1.append(v) : V2.append(v);
+    }
+    return true;
 }
 
 int main(int argc, char *argv[]) {
@@ -72,18 +83,43 @@ int main(int argc, char *argv[]) {
     leda::list<leda::node> V2;
     // Initialize a random graph G
     leda::graph G;
-    // void random_graph(graph& G, int n, int m, bool no_anti_parallel_edges, bool loopfree, bool no_parallel_edges)
-    leda::random_graph(G, NUM_OF_NODES, NUM_OF_EDGES, true, true, true);
-    printGraph(G);
-    leda::Is_Bipartite(G, V1, V2) ? std::cout << "G is bipartite" << std::endl : std::cout << "G is not bipartite" << std::endl;
-    
-    std::cout << "Print leda's V1" << std::endl;
-    for(auto it = V1.begin(); it != V1.end(); it++) {
-        std::cout << (*it)->id() << std::endl;
-    }
+    // random_connected_graph(G);
+    test_graph(G);
 
-    std::cout << "Print leda's V2" << std::endl;
-    for(auto it = V2.begin(); it != V2.end(); it++) {
-        std::cout << (*it)->id() << std::endl;
+    // Make graph undirected
+    addComplementaryEdges(G);
+
+    printGraph(G);
+    
+    leda::Is_Bipartite(G, V1, V2);
+    // Print the odd circle LEDA found
+    std::cout << "LEDA V1: ";
+    for (auto it = V1.begin(); it != V1.end(); it++) {
+        std::cout << (*it)->id() << ", ";
     }
+    std::cout << std::endl;
+
+    std::cout << "LEDA V2: ";
+    for (auto it = V2.begin(); it != V2.end(); it++) {
+        std::cout << (*it)->id() << ", ";
+    }
+    std::cout << std::endl;
+
+    V1.clear();
+    V2.clear();
+
+    // Run my_bipar_checker()
+    my_bipar_checker(G, V1, V2);
+    // Print the odd circle I found
+    std::cout << "My V1: ";
+    for (auto it = V1.begin(); it != V1.end(); it++) {
+        std::cout << (*it)->id() << ", ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "My V2: ";
+    for (auto it = V2.begin(); it != V2.end(); it++) {
+        std::cout << (*it)->id() << ", ";
+    }
+    std::cout << std::endl;
 }

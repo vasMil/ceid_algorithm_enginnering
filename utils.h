@@ -1,8 +1,15 @@
 #pragma once
 #include "LEDA/graph/graph.h"
 #include "LEDA/graph/ugraph.h"
+#include "LEDA/graph/basic_graph_alg.h"
+
 #include <iostream>
 #include <set>
+
+#define NUM_OF_NODES 10
+#define NUM_OF_EDGES 12
+#define GREEN "green"
+#define BLUE "blue"
 
 void printGraph(const leda::graph& G) {
     std::cout << "Printing Graph..." << std::endl;
@@ -38,4 +45,17 @@ void addComplementaryEdges(leda::graph& G) {
         G.new_edge(it->first, it->second);
         G.new_edge(it->second, it->first);
     }
+}
+
+// An awful way to get a random, connected graph
+void random_connected_graph(leda::graph& G) {
+    leda::list<leda::node> visitedNodes;
+    do {
+        // void random_graph(graph& G, int n, int m, bool no_anti_parallel_edges, bool loopfree, bool no_parallel_edges)
+        leda::random_graph(G, NUM_OF_NODES, NUM_OF_EDGES, true, true, true);
+        leda::node s = G.first_node();
+        leda::node_array<int> dist(G, -1);
+        leda::node_array<leda::edge> pred(G);
+        visitedNodes = leda::BFS(G, s, dist, pred);
+    } while (visitedNodes.size() != NUM_OF_NODES);
 }
