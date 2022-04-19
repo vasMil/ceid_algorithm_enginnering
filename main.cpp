@@ -1,5 +1,7 @@
 #include <iostream>
 #include <string>
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
 
 #include "utils.h"
 
@@ -38,7 +40,6 @@ leda::list<leda::node> my_BFS(const leda::graph& G, leda::node s, leda::node_arr
     return visitedNodes;
 }
 
-
 bool my_bipar_checker(const leda::graph& G, leda::list<leda::node>& V1, leda::list<leda::node>& V2) {
     // Helping nodes and edges
     leda::edge e;
@@ -55,7 +56,8 @@ bool my_bipar_checker(const leda::graph& G, leda::list<leda::node>& V1, leda::li
         v = G.source(e);
         u = G.target(e);
         if (color[v] == color[u]) {
-            // Use BFS' pred node_array to find the common ancestor
+            // Traverse BFS tree backwards, until you find a common ancestor
+            // This will always return an odd circle. (I think I can prove this by induction)
             do {
                 if(dist[v] > dist[u]) {
                     V1.append(v);
@@ -101,6 +103,51 @@ void nestedSquares_graph(leda::graph& G, int n) {
     }
 }
 
+void ring_graph(leda::graph& G, int n) {
+    leda::node first, prev, temp;
+    first = G.new_node();
+    prev = first;
+    for(int i=1; i<n; i++) {
+        temp = G.new_node();
+        G.new_edge(prev, temp);
+        prev = temp;
+    }
+    G.new_edge(prev, first);
+}
+
+void fourLevel_graph(leda::graph& G, int k) {
+    G.make_undirected();
+    int i, j, randIndex;
+    leda::node arr[4][k];
+
+    // Initialize random seed
+    srand (time(NULL));
+
+    // Create four sets of k nodes each
+    for(i=0; i<4; i++) {
+        for(j=0; j<k; j++) {
+            arr[i][j] = G.new_node();
+        }
+    }
+    for(i=0; i<3; i++) {
+        // Add the first k edges (v^i_j -> v^(i+1)_j)
+        for(j=0; j<k; j++) {
+            G.new_edge(arr[i][j], arr[i+1][j]);
+        }
+
+        // At each level (i) select one of the k nodes (v) and add edges (v, u^(i+1)_j for all j)
+        randIndex = rand()%k;
+        for(j=0; j<k; j++) {
+            if(randIndex == j) continue; // I have already placed this edge
+            G.new_edge(arr[i][randIndex], arr[i+1][j]);
+        }
+    }
+    
+    // Add two extra edges (s,t) and (v,u), where s in L1, t in L3, v in L2, u in L4
+    G.new_edge(arr[0][rand()%k], arr[2][rand()%k]);
+    G.new_edge(arr[1][rand()%k], arr[3][rand()%k]);
+}
+
 int main(int argc, char *argv[]) {
     bool x, y;
     leda::node v;
@@ -110,9 +157,11 @@ int main(int argc, char *argv[]) {
     leda::graph G;
     // random_connected_graph(G);
     // test_graph(G);
-    nestedSquares_graph(G, 12000);
-    // printGraph(G);
-
+    // nestedSquares_graph(G, 12000);
+    // ring_graph(G, 21);
+    fourLevel_graph(G, 4);
+    printGraph(G, "csacademy");
+    std::cout << "Print is done!" << std::endl;
     x = my_bipar_checker(G, myV1, myV2);
 
     // Make graph undirected
@@ -128,5 +177,9 @@ int main(int argc, char *argv[]) {
     }
     else {
         std::cout << "Lists returned do not match!" << std::endl;
+        printLedaList(V1, "V1: ");
+        printLedaList(V2, "V2: ");
+        printLedaList(myV1, "myV1: ");
+        printLedaList(myV2, "myV2: ");
     }
 }

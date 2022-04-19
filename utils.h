@@ -12,14 +12,21 @@
 #define GREEN "green"
 #define BLUE "blue"
 
-void printGraph(const leda::graph& G) {
+void printGraph(const leda::graph& G, std::string site = "graphviz") {
     std::cout << "Printing Graph..." << std::endl;
+    std::string sep;
+    site == "graphviz" ? sep = " -> " : sep = " ";
     leda::edge e;
     leda::node s, t;
+    if(site == "csacademy") {
+        forall_nodes(s, G) {
+            std::cout << s->id() << std::endl;
+        }
+    } 
     forall_edges(e, G) {
         s = G.source(e);
         t = G.target(e);
-        std::cout << s->id() << " -> " << t->id() << std::endl;
+        std::cout << s->id() << sep << t->id() << std::endl;
     }
 }
 
@@ -70,6 +77,9 @@ void printLedaList(leda::list<leda::node> list, std::string initialMessage) {
 }
 
 bool areListsIdentical(leda::list<leda::node> l1, leda::list<leda::node> l2) {
+    // The difference in the succession is due to the way I am iterating through the edges in my_bipar_checker.
+    l1.sort();
+    l2.sort();
     auto it1 = l1.begin();
     auto it2 = l2.begin();
 
