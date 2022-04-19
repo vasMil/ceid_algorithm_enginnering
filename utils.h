@@ -2,10 +2,13 @@
 #include "LEDA/graph/graph.h"
 #include "LEDA/graph/ugraph.h"
 #include "LEDA/graph/basic_graph_alg.h"
+#include "LEDA/core/queue.h"
 
 #include <iostream>
 #include <string>
 #include <set>
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
 
 #define NUM_OF_NODES 10
 #define NUM_OF_EDGES 12
@@ -55,19 +58,6 @@ void addComplementaryEdges(leda::graph& G) {
     }
 }
 
-// An awful way to get a random, connected graph
-void random_connected_graph(leda::graph& G) {
-    leda::list<leda::node> visitedNodes;
-    do {
-        // void random_graph(graph& G, int n, int m, bool no_anti_parallel_edges, bool loopfree, bool no_parallel_edges)
-        leda::random_graph(G, NUM_OF_NODES, NUM_OF_EDGES, true, true, true);
-        leda::node s = G.first_node();
-        leda::node_array<int> dist(G, -1);
-        leda::node_array<leda::edge> pred(G);
-        visitedNodes = leda::BFS(G, s, dist, pred);
-    } while (visitedNodes.size() != NUM_OF_NODES);
-}
-
 void printLedaList(leda::list<leda::node> list, std::string initialMessage) {
     std::cout << initialMessage;
     for (auto it = list.begin(); it != list.end(); it++) {
@@ -78,6 +68,7 @@ void printLedaList(leda::list<leda::node> list, std::string initialMessage) {
 
 bool areListsIdentical(leda::list<leda::node> l1, leda::list<leda::node> l2) {
     // The difference in the succession is due to the way I am iterating through the edges in my_bipar_checker.
+    // This may also result to a different odd circle to be returned.
     l1.sort();
     l2.sort();
     auto it1 = l1.begin();
