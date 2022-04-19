@@ -4,6 +4,7 @@
 #include "LEDA/graph/basic_graph_alg.h"
 
 #include <iostream>
+#include <string>
 #include <set>
 
 #define NUM_OF_NODES 10
@@ -58,4 +59,25 @@ void random_connected_graph(leda::graph& G) {
         leda::node_array<leda::edge> pred(G);
         visitedNodes = leda::BFS(G, s, dist, pred);
     } while (visitedNodes.size() != NUM_OF_NODES);
+}
+
+void printLedaList(leda::list<leda::node> list, std::string initialMessage) {
+    std::cout << initialMessage;
+    for (auto it = list.begin(); it != list.end(); it++) {
+        std::cout << (*it)->id() << ", ";
+    }
+    std::cout << std::endl;
+}
+
+bool areListsIdentical(leda::list<leda::node> l1, leda::list<leda::node> l2) {
+    auto it1 = l1.begin();
+    auto it2 = l2.begin();
+
+    if(l1.size() != l2.size()) return false;
+    
+    while (it1 != l1.end() && it2 != l2.end()) {
+        if ((*it1)->id() != (*it2)->id()) return false;
+        it1++; it2++;
+    }
+    return true;
 }

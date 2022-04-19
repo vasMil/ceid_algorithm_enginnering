@@ -77,49 +77,56 @@ bool my_bipar_checker(const leda::graph& G, leda::list<leda::node>& V1, leda::li
     return true;
 }
 
+void nestedSquares_graph(leda::graph& G, int n) {
+    G.make_undirected();
+    leda::node x;
+    leda::queue<leda::node> Q;
+    leda::node arr[4];
+    for (int i=0; i < n/4; i++) {
+        for (int j=0; j<4; j++) {
+            arr[j] = G.new_node();
+            Q.append(arr[j]);
+            if (j == 0) {
+                continue;
+            }
+            else if (j == 3) {
+                G.new_edge(arr[3], arr[0]);
+            }
+            G.new_edge(arr[j], arr[j-1]);
+        }
+        if (Q.size() - 4 == 0) continue;
+        for (int j=0; j<4; j++) {
+            G.new_edge(arr[j], Q.pop());
+        }
+    }
+}
+
 int main(int argc, char *argv[]) {
+    bool x, y;
     leda::node v;
-    leda::list<leda::node> V1;
-    leda::list<leda::node> V2;
+    leda::list<leda::node> myV1, V1;
+    leda::list<leda::node> myV2, V2;
     // Initialize a random graph G
     leda::graph G;
     // random_connected_graph(G);
-    test_graph(G);
+    // test_graph(G);
+    nestedSquares_graph(G, 12000);
+    // printGraph(G);
+
+    x = my_bipar_checker(G, myV1, myV2);
 
     // Make graph undirected
     addComplementaryEdges(G);
+    y = leda::Is_Bipartite(G, V1, V2);
 
-    printGraph(G);
-    
-    leda::Is_Bipartite(G, V1, V2);
-    // Print the odd circle LEDA found
-    std::cout << "LEDA V1: ";
-    for (auto it = V1.begin(); it != V1.end(); it++) {
-        std::cout << (*it)->id() << ", ";
+    // Output status
+    if (x == y && areListsIdentical(V1, myV1) && areListsIdentical(V2, myV2)){
+        std::cout << "Leda and my implementation returned the same two lists" << std::endl;
     }
-    std::cout << std::endl;
-
-    std::cout << "LEDA V2: ";
-    for (auto it = V2.begin(); it != V2.end(); it++) {
-        std::cout << (*it)->id() << ", ";
+    else if (x != y) {
+        std::cout << "Leda returned with " << y << std::endl << "My implementation returned with " << x << std::endl;
     }
-    std::cout << std::endl;
-
-    V1.clear();
-    V2.clear();
-
-    // Run my_bipar_checker()
-    my_bipar_checker(G, V1, V2);
-    // Print the odd circle I found
-    std::cout << "My V1: ";
-    for (auto it = V1.begin(); it != V1.end(); it++) {
-        std::cout << (*it)->id() << ", ";
+    else {
+        std::cout << "Lists returned do not match!" << std::endl;
     }
-    std::cout << std::endl;
-
-    std::cout << "My V2: ";
-    for (auto it = V2.begin(); it != V2.end(); it++) {
-        std::cout << (*it)->id() << ", ";
-    }
-    std::cout << std::endl;
 }
