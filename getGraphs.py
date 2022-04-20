@@ -9,27 +9,38 @@ def extractDataFrame(df, typeOfGraph):
     ret = ret.groupby(["number_of_nodes"]).mean()
     return ret
 
+def plotDataframe(subplot_ax, df, typeOfGraph):
+    # extract data for a specific type of graph from df and get the mean
+    graphDf = extractDataFrame(df, typeOfGraph)
+    leda_ms = graphDf["leda_ms"]
+    myImpl_ms = graphDf["myImpl_ms"]
+
+    # create points to evaluate n+logn on
+    # n = np.arange(1,100000)
+    # big_o = (n + np.log2(n))*0.0001
+
+    # plot on subplot
+    # big_oLine = plt.plot(n, big_o)
+    subplot_ax.plot(leda_ms, '-bo')
+    subplot_ax.plot(myImpl_ms, '-gx')
+    subplot_ax.set_title(typeOfGraph)
+    subplot_ax.set(xlabel="num_of_nodes", ylabel="exec time in ms")
+    subplot_ax.ticklabel_format(axis='x', style="scientific", scilimits=(10000,100000), useMathText=True)
+
+
+
 
 # load data into a df
 df = pd.read_csv("measurments.csv")
 
-# extract data for a specific type of graph from df and get the mean
-ringDf = extractDataFrame(df, "nestedSquaresGraph")
-
-leda_ms = ringDf["leda_ms"]
-myImpl_ms = ringDf["myImpl_ms"]
-
-# create points to evaluate n+logn on
-n = np.arange(1,100000)
-big_o = (n + np.log2(n))*0.0001
-
 # plot
-# big_oLine = plt.plot(n, big_o)
-leda_msLine = plt.plot(leda_ms, '-bo')
-myImpl_msLine = plt.plot(myImpl_ms, '-gx')
+fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2,2, figsize=(7,7))
+
+plotDataframe(ax1, df, "nestedSquaresGraph")
+plotDataframe(ax2, df, "ringGraph")
+plotDataframe(ax3, df, "fourLevelsGraph")
 
 # plt.legend(["leda_ms", "myImpl_ms", "n+logn"])
-plt.legend(["leda_ms", "myImpl_ms"])
-plt.xlabel("num_of_nodes")
-plt.ylabel("exec time in ms")
+fig.legend(["leda_ms", "myImpl_ms"])
+plt.tight_layout()
 plt.show()
