@@ -30,6 +30,5 @@ int main(int argc, char *argv[]) {
         d = timeMe(&fourLevel_graph, G, levels_n[i]);
         d.save_into_csv(outfile, "fourLevelsGraph");
     }
-    
     outfile.close();
 }
