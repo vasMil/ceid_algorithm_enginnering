@@ -16,13 +16,20 @@ int main(int argc, char *argv[]) {
     // nestedSquares_graph(G, 12000);
     // ring_graph(G, 21);
     // fourLevel_graph(G, 16);
-
+    std::fstream outfile;
+    outfile.open("measurments.csv", std::fstream::in | std::fstream::out | std::fstream::app);
+    if(!outfile.is_open()) {
+        std::cout << "Cannot open measurnaments.csv!" << std::endl;
+        return 0;
+    }
     for(int i=0; i<3; i++) {        
         d = timeMe(&nestedSquares_graph, G, nested_n[i]);
-        d.print("Nested Squares Graph");
+        d.save_into_csv(outfile, "nestedSquaresGraph");
         d = timeMe(&ring_graph, G, ring_n[i]);
-        d.print("Ring Graph");
+        d.save_into_csv(outfile, "ringGraph");
         d = timeMe(&fourLevel_graph, G, levels_n[i]);
-        d.print("Four Levels Graph");
+        d.save_into_csv(outfile, "fourLevelsGraph");
     }
+    
+    outfile.close();
 }
