@@ -1,5 +1,10 @@
 #pragma once
 #include "utils.h"
+#include <vector>
+#include <math.h>
+#include <bitset>
+
+#define NBITS 20
 
 // An awful way to get a random, connected graph
 void random_connected_graph(leda::graph& G) {
@@ -84,4 +89,62 @@ void fourLevel_graph(leda::graph& G, int n) {
     // Add two extra edges (s,t) and (v,u), where s in L1, t in L3, v in L2, u in L4
     G.new_edge(arr[0][rand()%k], arr[2][rand()%k]);
     G.new_edge(arr[1][rand()%k], arr[3][rand()%k]);
+}
+
+int generalFib(int order, int n) {
+    std::vector<int> fibSeq (n+1, 0);
+    int i, j, h;
+    fibSeq[order-1] = 1;
+    for(i = order; i <= n+1; i++) {
+        h = i - order;
+        for (j=0; j<order; j++) {
+            fibSeq[i] += fibSeq[h+j];
+        }
+    }
+    // for(i=0; i <= n; i++) {
+    //     std::cout << fibSeq[i] << ", ";
+    // }
+    return fibSeq[n];
+}
+
+int countDiffBits(std::bitset<NBITS> a, std::bitset<NBITS> b) {
+    int count = 0;
+    for (int i=0; i<a.size(); i++) {
+        if(a[i] != b[i]) count++;
+    }
+    return count;
+}
+
+void generalizedFibonacciCube_graph(leda::graph& G, int order, int n) {
+    G.make_undirected();
+
+    // Find the number of nodes required
+    int nNodes = generalFib(order, n);
+    // Number of bits required
+    const int nbits = std::ceil(std::log2(nNodes));
+    int i;
+    std::string binStr;
+    std::string fibStr = std::string(order, '1');
+
+    leda::node v, u;
+    for (i = 0; i < nNodes; i++) {
+        v = G.new_node();
+    }
+
+    i = -1;
+    leda::node_array<int> bin(G);
+    forall_nodes(v, G) {
+        do {
+            binStr = std::bitset<NBITS>(++i).to_string();
+        } while (binStr.find(fibStr) != std::string::npos);
+        bin[v] = i;
+        // std::cout << std::bitset<10>(i).to_string() << std::endl;
+    }
+    
+    forall_nodes(v, G) {
+        forall_nodes(u, G) {
+            if(u==v || countDiffBits(bin[u], bin[v]) > 1) continue;
+            G.new_edge(v,u);
+        }
+    }
 }

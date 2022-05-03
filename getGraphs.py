@@ -1,17 +1,16 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import numpy as np
-import math
 
 def extractDataFrame(df, typeOfGraph):
     ret = df.loc[df["type_of_graph"] == typeOfGraph].iloc[1:]
     # group by the type of the graph and the number of nodes, find the mean
-    ret = ret.groupby(["number_of_nodes"]).mean()
+    ret = ret.groupby(["number_of_nodes"])
     return ret
 
 def plotDataframe(subplot_ax, df, typeOfGraph):
     # extract data for a specific type of graph from df and get the mean
     graphDf = extractDataFrame(df, typeOfGraph)
+    graphDf = graphDf.mean()
     leda_ms = graphDf["leda_ms"]
     myImpl_ms = graphDf["myImpl_ms"]
 
@@ -28,6 +27,13 @@ def plotDataframe(subplot_ax, df, typeOfGraph):
     subplot_ax.ticklabel_format(axis='x', style="scientific", scilimits=(10000,100000), useMathText=True)
 
 
+def printTimes_ofGraphType(df, typeOfGraph):
+    graphDf = extractDataFrame(df, typeOfGraph)
+    print("\n############### ", typeOfGraph, " ###############")
+    for name, group in graphDf:
+        print("Number of Nodes: ", name)
+        print("\tLEDA: ", group["leda_ms"].mean(), "ms")
+        print("\tmyImpl: ", group["myImpl_ms"].mean(), "ms")
 
 
 # load data into a df
@@ -44,3 +50,7 @@ plotDataframe(ax3, df, "fourLevelsGraph")
 fig.legend(["leda_ms", "myImpl_ms"])
 plt.tight_layout()
 plt.show()
+
+printTimes_ofGraphType(df, "nestedSquaresGraph")
+printTimes_ofGraphType(df, "ringGraph")
+printTimes_ofGraphType(df, "fourLevelsGraph")
