@@ -37,7 +37,7 @@ def printTimes_ofGraphType(df, typeOfGraph):
 
 
 # load data into a df
-df = pd.read_csv("measurments.csv")
+df = pd.read_csv("measurements.csv")
 
 # plot
 fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2,2, figsize=(7,7))
