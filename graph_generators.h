@@ -1,10 +1,5 @@
 #pragma once
 #include "utils.h"
-#include <vector>
-#include <math.h>
-#include <bitset>
-
-#define NBITS 20
 
 // An awful way to get a random, connected graph
 void random_connected_graph(leda::graph& G) {
@@ -101,9 +96,6 @@ int generalFib(int order, int n) {
             fibSeq[i] += fibSeq[h+j];
         }
     }
-    // for(i=0; i <= n; i++) {
-    //     std::cout << fibSeq[i] << ", ";
-    // }
     return fibSeq[n];
 }
 
@@ -115,14 +107,18 @@ int countDiffBits(std::bitset<NBITS> a, std::bitset<NBITS> b) {
     return count;
 }
 
-void generalizedFibonacciCube_graph(leda::graph& G, int order, int n) {
+// Order: https://en.wikipedia.org/wiki/Generalizations_of_Fibonacci_numbers#:~:text=in%20the%20OEIS)-,Fibonacci%20numbers%20of%20higher%20order,-%5Bedit%5D
+// 
+void generalizedFibonacciCube_graph(leda::graph& G, int order, int& n) {
     G.make_undirected();
-
     // Find the number of nodes required
     int nNodes = generalFib(order, n);
+    n = nNodes;
+    if (nNodes == 0) return;
     // Number of bits required
     const int nbits = std::ceil(std::log2(nNodes));
     int i;
+
     std::string binStr;
     std::string fibStr = std::string(order, '1');
 
@@ -130,7 +126,6 @@ void generalizedFibonacciCube_graph(leda::graph& G, int order, int n) {
     for (i = 0; i < nNodes; i++) {
         v = G.new_node();
     }
-
     i = -1;
     leda::node_array<int> bin(G);
     forall_nodes(v, G) {
@@ -140,7 +135,6 @@ void generalizedFibonacciCube_graph(leda::graph& G, int order, int n) {
         bin[v] = i;
         // std::cout << std::bitset<10>(i).to_string() << std::endl;
     }
-    
     forall_nodes(v, G) {
         forall_nodes(u, G) {
             if(u==v || countDiffBits(bin[u], bin[v]) > 1) continue;

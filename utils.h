@@ -9,11 +9,16 @@
 #include <set>
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
+#include <vector>
+#include <math.h>
+#include <bitset>
 
 #define NUM_OF_NODES 10
 #define NUM_OF_EDGES 12
 #define GREEN "green"
 #define BLUE "blue"
+
+#define NBITS 20        /* number of bits in fibonacci node */
 
 void printGraph(const leda::graph& G, std::string site = "graphviz") {
     std::cout << "Printing Graph..." << std::endl;

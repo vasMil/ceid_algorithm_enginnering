@@ -3,6 +3,7 @@
 
 leda::list<leda::node> my_BFS(const leda::graph& G, leda::node s, leda::node_array<int>& dist, leda::node_array<leda::edge>& pred, leda::node_array<std::string>& color) {
     leda::list<leda::node> visitedNodes;
+    if (G.empty()) return visitedNodes; // edge case
     leda::node v, u;
     leda::edge e;
 
@@ -14,7 +15,7 @@ leda::list<leda::node> my_BFS(const leda::graph& G, leda::node s, leda::node_arr
     pred[s] = nil;
     visitedNodes.push_back(s);
     Q.append(s);
-
+    
     while(!Q.empty()) {
         // Pop a node
         v = Q.pop();
@@ -45,7 +46,6 @@ bool my_bipar_checker(const leda::graph& G, leda::list<leda::node>& V1, leda::li
     leda::node_array<leda::edge> pred(G);
     leda::node_array<std::string> color(G);
     my_BFS(G, s, dist, pred, color);
-
     forall_edges(e, G) {
         v = G.source(e);
         u = G.target(e);

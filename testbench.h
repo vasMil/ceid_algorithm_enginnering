@@ -38,23 +38,39 @@ struct Durations {
     }
 };
 
-Durations timeMe(void (*graphFunc)(leda::graph&, int), leda::graph& G, int n) {
+// TODO: This should be a singleton!
+typedef union {
+    void (*simpleSig)(leda::graph& G, int n);
+    void (*orderSig)(leda::graph& G, int order, int& n);
+} graphGeneratorsUnion;
+
+
+Durations timeMe(graphGeneratorsUnion gg, leda::graph& G, int n, int order=-1) {
     leda::list<leda::node> V1, V2, myV1, myV2;
     int x, y;
-
-    // Create the graph using the input function
+    // Clear any leftover nodes in G
     G.clear();
-    graphFunc(G, n);
-    
+
+    // Extract the graph function requested
+    if (order < 0) {
+        auto graphFunc = gg.simpleSig;
+        // Create the graph using the chosen function
+        graphFunc(G, n);
+    }
+    else{
+        auto graphFunc = gg.orderSig;
+        // Create the graph using the chosen function
+        graphFunc(G, order, n);
+    }
+
     // Start timer
     auto t0 = std::chrono::high_resolution_clock::now();
     
     // Run my_bipar_checker()
     x = my_bipar_checker(G, myV1, myV2);
-
     // Capture time
     auto t1 = std::chrono::high_resolution_clock::now();
-    
+
     // Convert graph so I may run leda
     addComplementaryEdges(G);
 
@@ -64,7 +80,6 @@ Durations timeMe(void (*graphFunc)(leda::graph&, int), leda::graph& G, int n) {
 
     // End timer
     auto t3 = std::chrono::high_resolution_clock::now();
-
     if(x != y) throw std::runtime_error("Your implementation is wrong!");
 
     // Return durations as a struct
