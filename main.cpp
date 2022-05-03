@@ -10,7 +10,7 @@ int main(int argc, char *argv[]) {
     int nested_n[] = {12000, 48000, 100000};
     int ring_n[] = {20001, 50001, 100001};
     int levels_n[] = {4*600, 4*1200, 4*1800};
-    std::vector<int> fib_n = {10, 12, 15, 17};
+    std::vector<int> fib_n = {10, 12, 15};
     int fibOrder = 3;
     Durations d;
 

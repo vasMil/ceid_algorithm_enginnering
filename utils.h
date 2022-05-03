@@ -13,12 +13,13 @@
 #include <math.h>
 #include <bitset>
 
-#define NUM_OF_NODES 10
-#define NUM_OF_EDGES 12
+#define NUM_OF_NODES 10 /* Info required for random_connected_graph() */
+#define NUM_OF_EDGES 12 /* Info required for random_connected_graph() */
 #define GREEN "green"
 #define BLUE "blue"
 
 #define NBITS 20        /* number of bits in fibonacci node */
+
 
 void printGraph(const leda::graph& G, std::string site = "graphviz") {
     std::cout << "Printing Graph..." << std::endl;
@@ -86,4 +87,28 @@ bool areListsIdentical(leda::list<leda::node> l1, leda::list<leda::node> l2) {
         it1++; it2++;
     }
     return true;
+}
+
+// Given the order and the index n, return nth integer of the generalized(order) fibonacci sequence.
+// (indexing starting at 0) 
+int generalFib(int order, int n) {
+    std::vector<int> fibSeq (n+1, 0);
+    int i, j, h;
+    fibSeq[order-1] = 1;
+    for(i = order; i <= n+1; i++) {
+        h = i - order;
+        for (j=0; j<order; j++) {
+            fibSeq[i] += fibSeq[h+j];
+        }
+    }
+    return fibSeq[n];
+}
+
+// Given two bitsets, return the number of different bits.
+int countDiffBits(std::bitset<NBITS> a, std::bitset<NBITS> b) {
+    int count = 0;
+    for (int i=0; i<a.size(); i++) {
+        if(a[i] != b[i]) count++;
+    }
+    return count;
 }

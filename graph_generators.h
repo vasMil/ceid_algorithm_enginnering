@@ -14,6 +14,7 @@ void random_connected_graph(leda::graph& G) {
     } while (visitedNodes.size() != NUM_OF_NODES);
 }
 
+
 void nestedSquares_graph(leda::graph& G, int n) {
     G.make_undirected();
     leda::node x;
@@ -38,6 +39,7 @@ void nestedSquares_graph(leda::graph& G, int n) {
     }
 }
 
+
 void ring_graph(leda::graph& G, int n) {
     G.make_undirected();
     leda::node first, prev, temp;
@@ -50,6 +52,7 @@ void ring_graph(leda::graph& G, int n) {
     }
     G.new_edge(prev, first);
 }
+
 
 void fourLevel_graph(leda::graph& G, int n) {
     G.make_undirected();
@@ -86,29 +89,11 @@ void fourLevel_graph(leda::graph& G, int n) {
     G.new_edge(arr[1][rand()%k], arr[3][rand()%k]);
 }
 
-int generalFib(int order, int n) {
-    std::vector<int> fibSeq (n+1, 0);
-    int i, j, h;
-    fibSeq[order-1] = 1;
-    for(i = order; i <= n+1; i++) {
-        h = i - order;
-        for (j=0; j<order; j++) {
-            fibSeq[i] += fibSeq[h+j];
-        }
-    }
-    return fibSeq[n];
-}
-
-int countDiffBits(std::bitset<NBITS> a, std::bitset<NBITS> b) {
-    int count = 0;
-    for (int i=0; i<a.size(); i++) {
-        if(a[i] != b[i]) count++;
-    }
-    return count;
-}
 
 // Order: https://en.wikipedia.org/wiki/Generalizations_of_Fibonacci_numbers#:~:text=in%20the%20OEIS)-,Fibonacci%20numbers%20of%20higher%20order,-%5Bedit%5D
-// 
+// argument n -> Counting from 0, find the nth fibonacci (of order order) number.
+// It is passed by argument so I may return the number of nodes the graph will have.
+// Paper: https://dmtcs.episciences.org/2165/pdf
 void generalizedFibonacciCube_graph(leda::graph& G, int order, int& n) {
     G.make_undirected();
     // Find the number of nodes required

@@ -38,6 +38,7 @@ struct Durations {
     }
 };
 
+
 // TODO: This should be a singleton!
 typedef union {
     void (*simpleSig)(leda::graph& G, int n);
