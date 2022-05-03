@@ -1,7 +1,7 @@
 LEDALIB = '/usr/local/LEDA'
 LEDAINCL = '/usr/local/LEDA/incl'
 
-f=main.cpp
+f=src/main.cpp
 
 compile: $(f)
 	g++ $(f) -o main.o -O3 -std=c++0x -fno-strict-aliasing -I $(LEDAINCL) -lleda -L$(LEDALIB)

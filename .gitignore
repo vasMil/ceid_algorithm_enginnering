@@ -1,3 +1,4 @@
 *.o
-measurments.csv
+measurements.csv
 .vscode/
+report/

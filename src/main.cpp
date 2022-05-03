@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
     graphGeneratorsUnion gg;
 
     std::fstream outfile;
-    outfile.open("measurments.csv", std::fstream::in | std::fstream::out | std::fstream::app);
+    outfile.open("measurements.csv", std::fstream::in | std::fstream::out | std::fstream::app);
     if(!outfile.is_open()) {
         std::cout << "Cannot open measurnaments.csv!" << std::endl;
         return 0;
