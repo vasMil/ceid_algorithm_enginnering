@@ -1,5 +1,5 @@
-template <typename CostPMap>
-void randomGraph(Graph& G, CostPMap& cost, int n_nodes, int m_edges, int min_cost, int max_cost) {
+template <typename CostPropertyMap>
+void randomGraph(Graph& G, CostPropertyMap& cost, int n_nodes, int m_edges, int min_cost, int max_cost) {
     // Initialize a random number generator
     boost::mt19937 rng;
     // add a seed to it
@@ -11,7 +11,7 @@ void randomGraph(Graph& G, CostPMap& cost, int n_nodes, int m_edges, int min_cos
     boost::generate_random_graph(G, n_nodes, m_edges, rng, false, false);
 
     // Add random costs on the edges
-    boost::graph_traits<Graph>::edge_iterator first, last;
+    EdgeIter first, last;
     for (boost::tie(first, last) = edges(G); first != last; ++first) {
         cost[*first] = dist(rng);
     }
