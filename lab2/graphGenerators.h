@@ -1,3 +1,5 @@
+#pragma once
+
 template <typename CostPropertyMap>
 void randomGraph(Graph& G, CostPropertyMap& cost, int n_nodes, int m_edges, int min_cost, int max_cost) {
     // Initialize a random number generator

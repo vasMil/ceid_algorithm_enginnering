@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "graphGenerators.h"
 
 bool Dijkstra_SP(Graph& G, Vertex& s, Vertex& t, CostPMap& cost, PredPMap& pred, int& iter_cnt) {
     // Setup CompareNode struct for the priority queue

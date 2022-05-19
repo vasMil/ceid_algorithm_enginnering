@@ -34,6 +34,7 @@ struct EdgeInfo {
 };
 
 typedef boost::property_map<Graph, unsigned int EdgeInfo::*>::type CostPMap;
+typedef boost::property_map<Graph, unsigned int EdgeInfo::*>::type WeightPMap;
 typedef boost::property_map<Graph, unsigned int NodeInfo::*>::type DistPMap;
 typedef boost::property_map<Graph, Edge NodeInfo::*>::type PredPMap;
 
