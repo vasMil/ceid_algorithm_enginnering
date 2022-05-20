@@ -1,7 +1,7 @@
 #include "utils.h"
 #include "graphGenerators.h"
 
-bool Dijkstra_SP(Graph& G, Vertex& s, Vertex& t, CostPMap& cost, PredPMap& pred, int& iter_cnt) {
+bool Dijkstra_SP(Graph& G, Vertex& s, Vertex& t, CostPMap& cost, PredPMap& pred, unsigned int& iter_cnt) {
     // Setup CompareNode struct for the priority queue
     CompareNodes::pmap_dist = get(&NodeInfo::dist, G);
 
@@ -9,17 +9,18 @@ bool Dijkstra_SP(Graph& G, Vertex& s, Vertex& t, CostPMap& cost, PredPMap& pred,
     VertexBH PQ;
 
     // Parallel helper vectors
-    std::vector<VBH_handle_t> handles(num_vertices(G));
-    std::vector<bool> visited(num_vertices(G), false);
+    std::vector<VBH_handle_t> handles(boost::num_vertices(G));
+    std::vector<bool> visited(boost::num_vertices(G), false);
 
     // Helper variables
     Vertex u, v;
     OutEdgeIter out_eit, out_eit_end;
-    int cur_vert_dist = 0;
-    int adj_vert_dist = 0;
+    unsigned int cur_vert_dist = 0;
+    unsigned int adj_vert_dist = 0;
 
     // Update distance of the starting Vertex to 0 and push it in PQ.
     CompareNodes::pmap_dist[s] = 0;
+    visited[s] = true;
     handles[s] = PQ.push(s);
 
     while(!PQ.empty()) {
@@ -31,14 +32,16 @@ bool Dijkstra_SP(Graph& G, Vertex& s, Vertex& t, CostPMap& cost, PredPMap& pred,
         for (boost::tie(out_eit, out_eit_end) = boost::out_edges(u, G); out_eit != out_eit_end; ++out_eit) {
             v = boost::target(*out_eit, G);
             adj_vert_dist = cur_vert_dist + cost[*out_eit];
-            if (!visited[v] && v != s) {
+            if (!visited[v]) {
                 visited[v] = true;
                 CompareNodes::pmap_dist[v] = adj_vert_dist;
                 handles[v] = PQ.push(v);
             }
             else if (adj_vert_dist < CompareNodes::pmap_dist[v]) {
                 CompareNodes::pmap_dist[v] = adj_vert_dist;
-                PQ.decrease(handles[v]);
+                // As distance decreases -> priority increases
+                // trivial example: https://coliru.stacked-crooked.com/a/b7ea797e74d4b0ad
+                PQ.increase(handles[v]);
             }
             else {
                 continue;

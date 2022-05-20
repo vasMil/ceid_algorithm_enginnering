@@ -16,9 +16,9 @@ int main() {
     
     // Test Dijkstra_SP
     // Test by making use of test.h to compare my implementation with the one boost offers
-    test_Dijkstra(1000, 2000);
+    // test_Dijkstra(1000, 2000);
     
     // Test by printing the SP from first Vertex to last Vertex of the graph
-    test_printSmallGraph_DijkstraSP(10,12);
+    test_printSmallGraph_DijkstraSP(10,25);
     return 0;
 }

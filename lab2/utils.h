@@ -38,6 +38,9 @@ typedef boost::property_map<Graph, unsigned int EdgeInfo::*>::type WeightPMap;
 typedef boost::property_map<Graph, unsigned int NodeInfo::*>::type DistPMap;
 typedef boost::property_map<Graph, Edge NodeInfo::*>::type PredPMap;
 
+// This functor converts the max-heap to a min-heap
+// More about value_compare:
+// https://en.cppreference.com/w/cpp/container/map/value_compare
 struct CompareNodes {
     static DistPMap pmap_dist;
     // const is necessary, read this:
