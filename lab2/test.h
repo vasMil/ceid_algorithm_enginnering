@@ -2,7 +2,7 @@
 #include <limits>
 
 int test_Dijkstra(int n_vertices, int m_edges) {
-    std::cout << "Running test_Dijkstra..." << std::endl;
+    std::cout << "\n...Running test_Dijkstra...\n" << std::endl;
 
     // Create a random graph G
     Graph G;
@@ -45,15 +45,61 @@ int test_Dijkstra(int n_vertices, int m_edges) {
         // In my impl the predecessor Edge will have an unspecified value
         if (myPredVert != boostPredVert && boostPredVert != i) {
             std::cout << "i = " << i << " Boost: " << boostPredVert << ", myImpl: " << myPredVert << std::endl;
+            std::cout << "\n...test_Dijkstra... Done" << std::endl;
             return false;
         }
         if (myDist != boostDist && boostDist != std::numeric_limits<unsigned int>::max()) {
             std::cout << "i = " << i << " Boost_dist: " << boostDist << ", myImpl_dist: " << myDist << std::endl;
+            std::cout << "\n...test_Dijkstra... Done" << std::endl;
             return false;
         }
         ++i;
     }
 
     std::cout << "Dijkstra_test succeeded on random graph with " << n_vertices << " Vertices and " << m_edges << " Edges" << std::endl;
+    std::cout << "\n...test_Dijkstra... Done" << std::endl;
     return true;
+}
+
+void test_printSmallGraph_DijkstraSP(int n_vertices, int m_edges) {
+    std::cout << "\n...Running test_printSmallGraph_DijkstraSP...\n" << std::endl;
+
+    // Declaire graph G
+    Graph G;
+    // Get the property maps
+    CostPMap cost = boost::get(&EdgeInfo::cost, G);
+    PredPMap pred = boost::get(&NodeInfo::pred, G);
+    DistPMap dist = boost::get(&NodeInfo::dist, G);
+
+    // Create the random graph
+    randomGraph(G, cost, n_vertices, m_edges, 0, 1000);
+
+    // Print the graph
+    write_graphviz(std::cout, G, boost::default_writer(), boost::make_label_writer(cost));
+    std::cout << std::endl;
+
+    // Test by printing the SP from first Vertex to last Vertex of the graph
+    int cnt = 0, totSPcost = 0;
+    VertexIter first, last;
+    boost::tie(first, last) = boost::vertices(G);
+    Vertex s = *first, t = *(--last);
+    
+    bool isPath = Dijkstra_SP(G, s, t, cost, pred, cnt);
+
+    if (!isPath) {
+        std::cout << "There is no path from s to t" << std::endl;
+        std::cout << "\n...test_printSmallGraph_DijkstraSP... Done" << std::endl;
+        return;
+    }
+    std::cout << "Visited " << cnt << " vertices" << std::endl;
+    std::cout << "The shortest path found: ";
+    while (s != t) {
+        std::cout << t << " -> ";
+        t = boost::source(pred[t], G);
+        // totSPcost += cost[pred[t]];
+    }
+    std::cout << s << std::endl;
+    std::cout << "Total cost of the path: " << totSPcost << std::endl;
+    std::cout << "\n...test_printSmallGraph_DijkstraSP... Done" << std::endl;
+    return;
 }
