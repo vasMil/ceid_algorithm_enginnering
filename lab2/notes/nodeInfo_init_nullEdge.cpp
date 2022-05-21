@@ -24,13 +24,16 @@ typedef boost::graph_traits<Graph>::in_edge_iterator InEdgeIter;
 Graph nullGraph;
 
 struct NodeInfo {
-    EdgeIter pred;
+    // Should I operate on vertex and edge descriptor or their iterators?
+    // https://stackoverflow.com/questions/43946352/when-analyzing-boostgraph-does-one-operate-on-vertex-and-edge-descriptor-or-t
+    // Short answer: You should be storing descriptors, not iterators.
+    Edge pred;
     unsigned int dist;
     unsigned int lowerBound; // Will be used in A*
     NodeInfo() {
         this->dist = std::numeric_limits<unsigned int>::max();
         this->lowerBound = std::numeric_limits<unsigned int>::max();
-        this->pred = boost::edges(nullGraph).second;
+        this->pred = *(boost::edges(nullGraph).second);
     }
 };
 
@@ -38,7 +41,7 @@ struct EdgeInfo {
     unsigned int cost;
 };
 
-typedef boost::property_map<Graph, EdgeIter NodeInfo::*>::type PredPMap;
+typedef boost::property_map<Graph, Edge NodeInfo::*>::type PredPMap;
 
 int main() {
     Graph G;
@@ -57,10 +60,10 @@ int main() {
     for(boost::tie(first, last) = boost::edges(G); first != last; ++first) {
         u = boost::source(*first, G);
         v = boost::target(*first, G);
-        pred[v] = first;
-        // std::cout << v << ".pred = " << *(pred[v]) << std::endl;
+        pred[v] = *first;
+        // std::cout << v << ".pred = " << pred[v] << std::endl;
     }
     for(boost::tie(vfirst, vlast) = boost::vertices(G); vfirst != vlast; ++vfirst) {
-        std::cout << *vfirst << ".pred = " << *(pred[*vfirst]) << std::endl;
+        std::cout << *vfirst << ".pred = " << pred[*vfirst] << std::endl;
     }
 }
