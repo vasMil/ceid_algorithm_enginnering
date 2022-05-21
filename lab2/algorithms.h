@@ -1,9 +1,12 @@
 #include "utils.h"
-#include "graphGenerators.h"
 
-bool Dijkstra_SP(Graph& G, Vertex& s, Vertex& t, CostPMap& cost, PredPMap& pred, unsigned int& iter_cnt) {
+template <typename GraphOperations_t>
+bool Dijkstra_SP(
+    Graph& G, Vertex& s, Vertex& t, CostPMap& cost, PredPMap& pred, DistPMap& dist, unsigned int& iter_cnt, 
+    GraphOperations_t& functor
+    ) {
     // Setup CompareNode struct for the priority queue
-    CompareNodes::pmap_dist = get(&NodeInfo::dist, G);
+    CompareNodes::pmap_dist = dist;
 
     // Initialize the priority queue
     VertexBH PQ;
@@ -14,9 +17,11 @@ bool Dijkstra_SP(Graph& G, Vertex& s, Vertex& t, CostPMap& cost, PredPMap& pred,
 
     // Helper variables
     Vertex u, v;
-    OutEdgeIter out_eit, out_eit_end;
+    Edge e;
     unsigned int cur_vert_dist = 0;
     unsigned int adj_vert_dist = 0;
+    // Get the correct iterator type, depending on which operation SINGLETON is passed as an argument
+    auto out_eit  = GraphOperations_t::it, out_eit_end = GraphOperations_t::it;
 
     // Update distance of the starting Vertex to 0 and push it in PQ.
     CompareNodes::pmap_dist[s] = 0;
@@ -29,8 +34,9 @@ bool Dijkstra_SP(Graph& G, Vertex& s, Vertex& t, CostPMap& cost, PredPMap& pred,
         if (u == t) return true;
         
         cur_vert_dist = CompareNodes::pmap_dist[u];
-        for (boost::tie(out_eit, out_eit_end) = boost::out_edges(u, G); out_eit != out_eit_end; ++out_eit) {
-            v = boost::target(*out_eit, G);
+        for (boost::tie(out_eit, out_eit_end) = functor.adj_edges(u, G); out_eit != out_eit_end; ++out_eit) {
+            e = *out_eit;
+            v = functor.opposite(e, G);
             adj_vert_dist = cur_vert_dist + cost[*out_eit];
             if (!visited[v]) {
                 visited[v] = true;
@@ -51,4 +57,40 @@ bool Dijkstra_SP(Graph& G, Vertex& s, Vertex& t, CostPMap& cost, PredPMap& pred,
     }
     
     return false;
+}
+
+template <typename GraphOperations_t>
+std::vector<unsigned int> getDistance_Landmark(Graph& G, Vertex& L, GraphOperations_t& functor) {
+    VertexIter first, last;
+    std::vector<unsigned int> distVec(boost::num_vertices(G));
+    CostPMap cost = boost::get(&EdgeInfo::cost, G);
+    PredPMap pred = boost::get(&NodeInfo::pred, G);
+    DistPMap dist = boost::get(&NodeInfo::dist, G);
+    unsigned int cnt = 0, i = 0;
+
+    // Run Dijkstra with the landmark being the starting point - save dist in NodeInfo::dist
+    Dijkstra_SP(G, L, NULL_VERTEX, cost, pred, dist, cnt, functor);
+
+    // Extract info and reset NodeInfo::dist
+    // There is no need to reset NodeInfo::pred since it is only used for writing and not reading
+    // on the preprocessing state
+    for(boost::tie(first, last) = boost::vertices(G); first != last; ++first) {
+        distVec[i] = dist[*first];
+        dist[*first] = std::numeric_limits<unsigned int>::max();
+        ++i;
+    }
+    return distVec;
+}
+
+
+void prep_A_star(Graph& G) {
+    Vertex L = *(boost::vertices(G).first);
+    auto distFromL = getDistance_Landmark(G, L, GraphOper::getInstance());
+    for (int i = 0; i < distFromL.size(); ++i) {
+        std::cout << i << ".dist = " << distFromL[i] << std::endl;
+    }
+    auto distToL = getDistance_Landmark(G, L, RevGraphOper::getInstance());
+    for (int i = 0; i < distToL.size(); ++i) {
+        std::cout << i << ".rev_dist = " << distToL[i] << std::endl;
+    }
 }

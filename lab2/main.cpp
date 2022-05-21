@@ -12,13 +12,15 @@ int main() {
     DistPMap dist = boost::get(&NodeInfo::dist, G);
 
     // Create the random graph
-    randomGraph(G, cost, 80, 150, 0, 1000);
-    
-    // Test Dijkstra_SP
-    // Test by making use of test.h to compare my implementation with the one boost offers
-    // test_Dijkstra(1000, 2000);
-    
-    // Test by printing the SP from first Vertex to last Vertex of the graph
-    test_printSmallGraph_DijkstraSP(10,25);
+    randomGraph(G, cost, 10, 20, 0, 100);
+    VertexIter first, last;
+    boost::tie(first, last) = boost::vertices(G);
+    Vertex L = *first;
+    // prep_A_star(G);
+    // std::cout << std::endl << std::endl;
+    // boost::write_graphviz(std::cout, G, boost::default_writer(), boost::make_label_writer(cost));
+    // // Test Dijkstra_SP
+    test_Dijkstra(1000, 2000);
+    // test_printSmallGraph_DijkstraSP(10,25);
     return 0;
 }

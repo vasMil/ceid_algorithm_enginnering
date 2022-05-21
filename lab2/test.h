@@ -27,7 +27,7 @@ int test_Dijkstra(int n_vertices, int m_edges) {
     std::vector<unsigned int> boost_dist(boost::num_vertices(G));
 
     // Run the two
-    bool isPath = Dijkstra_SP(G, s, t, cost, pred, cnt);
+    bool isPath = Dijkstra_SP(G, s, t, cost, pred, dist, cnt, GraphOper::getInstance());
     boost::dijkstra_shortest_paths(G, s, boost::predecessor_map(&boost_pred[0]).distance_map(
         // Get an iterator type out of the vector.
         // TODO: Take a deeper look at what boost::make_iterator_property_map() does, 
@@ -80,7 +80,7 @@ void test_printSmallGraph_DijkstraSP(int n_vertices, int m_edges) {
     randomGraph(G, cost, n_vertices, m_edges, 0, 1000);
 
     // Print the graph
-    write_graphviz(std::cout, G, boost::default_writer(), boost::make_label_writer(cost));
+    boost::write_graphviz(std::cout, G, boost::default_writer(), boost::make_label_writer(cost));
     std::cout << std::endl;
 
     // Test by printing the SP from first Vertex to last Vertex of the graph
@@ -89,7 +89,7 @@ void test_printSmallGraph_DijkstraSP(int n_vertices, int m_edges) {
     boost::tie(first, last) = boost::vertices(G);
     Vertex s = *first, t = *(--last);
     
-    bool isPath = Dijkstra_SP(G, s, t, cost, pred, cnt);
+    bool isPath = Dijkstra_SP(G, s, t, cost, pred, dist, cnt, GraphOper::getInstance());
 
     if (!isPath) {
         std::cout << "There is no path from s to t" << std::endl;
