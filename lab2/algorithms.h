@@ -72,11 +72,12 @@ std::vector<unsigned int> getDistance_Landmark(Graph& G, Vertex& L, GraphOperati
     Dijkstra_SP(G, L, NULL_VERTEX, cost, pred, dist, cnt, functor);
 
     // Extract info and reset NodeInfo::dist
-    // There is no need to reset NodeInfo::pred since it is only used for writing and not reading
+    // I also reset NodeInfo::pred as a good practice, since it is only used for writing and not reading
     // on the preprocessing state
     for(boost::tie(first, last) = boost::vertices(G); first != last; ++first) {
         distVec[i] = dist[*first];
         dist[*first] = std::numeric_limits<unsigned int>::max();
+        pred[*first] = NULL_EDGE;
         ++i;
     }
     return distVec;

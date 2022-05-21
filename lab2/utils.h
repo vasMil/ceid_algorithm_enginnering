@@ -1,7 +1,6 @@
 #pragma once
 #include <stdio.h>
 #include <string>
-#include <iostream>
 #include <vector>
 #include <limits>
 #include <utility> /* std::pair */
@@ -32,6 +31,13 @@ typedef boost::graph_traits<Graph>::vertex_iterator VertexIter;
 typedef boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
 typedef boost::graph_traits<Graph>::in_edge_iterator InEdgeIter;
 
+// In boost there is no null_edge in boost (in contrast to null_vertex(), which is a thing)
+// https://stackoverflow.com/questions/69972568/returning-a-null-edge-descriptor-in-an-adjacency-list-c-bgl
+// Neither std::optional or boost::optional is an option since they are not supported by the system I am
+// compiling on.
+const Graph NULL_GRAPH;
+const Edge NULL_EDGE = *(boost::edges(NULL_GRAPH).second);
+
 struct NodeInfo {
     Edge pred;
     unsigned int dist;
@@ -39,6 +45,7 @@ struct NodeInfo {
     NodeInfo() {
         this->dist = std::numeric_limits<unsigned int>::max();
         this->lowerBound = std::numeric_limits<unsigned int>::max();
+        this->pred = NULL_EDGE;
     }
 };
 

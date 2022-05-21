@@ -14,7 +14,7 @@ int test_Dijkstra(int n_vertices, int m_edges) {
     randomGraph(G, cost, n_vertices, m_edges, 0, 1000);
     
     // Env for Dijkstra_SP
-    unsigned int cnt = 0, i = 0, cnt_same_pred = 0, cnt_same_dist = 0;
+    unsigned int cnt = 0, i = 0, cnt_same_pred = 0, cnt_same_dist = 0, cnt_difInit_pred = 0, cnt_difInit_dist = 0;
     VertexIter first, last;
     boost::tie(first, last) = boost::vertices(G);
     // t is intentionally pointing to an edge outside of the Graph,
@@ -46,12 +46,16 @@ int test_Dijkstra(int n_vertices, int m_edges) {
         if (myPredVert != boostPredVert && boostPredVert != i) {
             std::cout << "i = " << i << " Boost: " << boostPredVert << ", myImpl: " << myPredVert << std::endl;
             predFlag = true;
-        } else if (myPredVert == boostPredVert) cnt_same_pred++;
+        }
+        else if (myPredVert == boostPredVert) cnt_same_pred++;
+        else if (boostPredVert == i) cnt_difInit_pred++;
 
         if (myDist != boostDist && boostDist != std::numeric_limits<unsigned int>::max()) {
             std::cout << "i = " << i << " Boost_dist: " << boostDist << ", myImpl_dist: " << myDist << std::endl;
             distFlag = true;
-        } else if (myDist == boostDist) cnt_same_dist++;
+        }
+        else if (myDist == boostDist) cnt_same_dist++;
+        else if (boostDist == std::numeric_limits<unsigned int>::max()) cnt_difInit_dist++;
 
         ++i;
     }
@@ -61,7 +65,11 @@ int test_Dijkstra(int n_vertices, int m_edges) {
     }
     std::cout << "Dijkstra_test succeeded on random graph with " << n_vertices << " Vertices and " << m_edges << " Edges" << std::endl;
     std::cout << "Vertices with same predecessor: " << cnt_same_pred << std::endl;
+    std::cout << "Vertices with different predecessor due to initialization difference: " << cnt_difInit_pred << std::endl;
     std::cout << "Vertices with same distance: " << cnt_same_dist << std::endl;
+    std::cout << "Vertices with different distance due to initialization difference: " << cnt_difInit_dist << std::endl;
+    std::cout << "\nNote: Vertices with different distance/predecessor due to initialization difference"
+        "implies that the vertices are not accessible from the starting Vertex s" << std::endl;
     std::cout << "\n...test_Dijkstra... Done" << std::endl;
     return true;
 }
