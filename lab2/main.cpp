@@ -17,8 +17,9 @@ int main() {
     boost::tie(first, last) = boost::vertices(G);
     Vertex L = *first;
     prep_A_star(G);
-    std::cout << std::endl << std::endl;
-    boost::write_graphviz(std::cout, G, boost::default_writer(), boost::make_label_writer(cost));
+    // std::cout << std::endl << std::endl;
+    // boost::write_graphviz(std::cout, G, boost::default_writer(), boost::make_label_writer(cost));
+    
     // // Test Dijkstra_SP
     // test_Dijkstra(1000, 2000);
     // test_printSmallGraph_DijkstraSP(10,25);

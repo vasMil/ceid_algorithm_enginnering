@@ -40,24 +40,24 @@ const Edge NULL_EDGE = *(boost::edges(NULL_GRAPH).second);
 
 struct NodeInfo {
     Edge pred;
-    unsigned int dist;
-    unsigned int lowerBound; // Will be used in A*
+    int dist;
+    int lowerBound; // Will be used in A*
     NodeInfo() {
-        this->dist = std::numeric_limits<unsigned int>::max();
-        this->lowerBound = std::numeric_limits<unsigned int>::max();
+        this->dist = std::numeric_limits<int>::max();
+        this->lowerBound = std::numeric_limits<int>::max();
         this->pred = NULL_EDGE;
     }
 };
 
 struct EdgeInfo {
-    unsigned int cost;
+    int cost;
 };
 
-typedef boost::property_map<Graph, unsigned int EdgeInfo::*>::type CostPMap;
-typedef boost::property_map<Graph, unsigned int EdgeInfo::*>::type WeightPMap;
-typedef boost::property_map<Graph, unsigned int NodeInfo::*>::type DistPMap;
+typedef boost::property_map<Graph, int EdgeInfo::*>::type CostPMap;
+typedef boost::property_map<Graph, int EdgeInfo::*>::type WeightPMap;
+typedef boost::property_map<Graph, int NodeInfo::*>::type DistPMap;
 typedef boost::property_map<Graph, Edge NodeInfo::*>::type PredPMap;
-typedef boost::property_map<Graph, unsigned int NodeInfo::*>::type LowerBoundPMap;
+typedef boost::property_map<Graph, int NodeInfo::*>::type LowerBoundPMap;
 
 // This functor converts the max-heap to a min-heap
 // More about value_compare:

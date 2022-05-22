@@ -14,7 +14,7 @@ int test_Dijkstra(int n_vertices, int m_edges) {
     randomGraph(G, cost, n_vertices, m_edges, 0, 1000);
     
     // Env for Dijkstra_SP
-    unsigned int cnt = 0, i = 0, cnt_same_pred = 0, cnt_same_dist = 0, cnt_difInit_pred = 0, cnt_difInit_dist = 0;
+    int cnt = 0, i = 0, cnt_same_pred = 0, cnt_same_dist = 0, cnt_difInit_pred = 0, cnt_difInit_dist = 0;
     VertexIter first, last;
     boost::tie(first, last) = boost::vertices(G);
     // t is intentionally pointing to an edge outside of the Graph,
@@ -24,7 +24,7 @@ int test_Dijkstra(int n_vertices, int m_edges) {
     // Setup env for boost::dijkstra_shortest_paths
     WeightPMap wemap = get(&EdgeInfo::cost, G);
     std::vector<Vertex> boost_pred(boost::num_vertices(G));
-    std::vector<unsigned int> boost_dist(boost::num_vertices(G));
+    std::vector<int> boost_dist(boost::num_vertices(G));
 
     // Run the two
     bool isPath = Dijkstra_SP(G, s, t, cost, pred, dist, cnt, GraphOper::getInstance());
@@ -39,7 +39,7 @@ int test_Dijkstra(int n_vertices, int m_edges) {
     // Check if the output of the two match
     for(i = 0; first != last; ++first) {
         Vertex myPredVert = boost::source(pred[*first], G), boostPredVert =  boost_pred[i];
-        unsigned int myDist = dist[*first], boostDist = boost_dist[i];
+        int myDist = dist[*first], boostDist = boost_dist[i];
         // Boost initializes the predecessor property map to be equal to vertex_index
         // Thus, if a node is not accessible from s, the boost_pred == i
         // In my impl the predecessor Edge will have an unspecified value
@@ -50,12 +50,12 @@ int test_Dijkstra(int n_vertices, int m_edges) {
         else if (myPredVert == boostPredVert) cnt_same_pred++;
         else if (boostPredVert == i) cnt_difInit_pred++;
 
-        if (myDist != boostDist && boostDist != std::numeric_limits<unsigned int>::max()) {
+        if (myDist != boostDist && boostDist != std::numeric_limits<int>::max()) {
             std::cout << "i = " << i << " Boost_dist: " << boostDist << ", myImpl_dist: " << myDist << std::endl;
             distFlag = true;
         }
         else if (myDist == boostDist) cnt_same_dist++;
-        else if (boostDist == std::numeric_limits<unsigned int>::max()) cnt_difInit_dist++;
+        else if (boostDist == std::numeric_limits<int>::max()) cnt_difInit_dist++;
 
         ++i;
     }
@@ -92,7 +92,7 @@ void test_printSmallGraph_DijkstraSP(int n_vertices, int m_edges) {
     std::cout << std::endl;
 
     // Test by printing the SP from first Vertex to last Vertex of the graph
-    unsigned int cnt = 0, totSPcost = 0;
+    int cnt = 0, totSPcost = 0;
     VertexIter first, last;
     boost::tie(first, last) = boost::vertices(G);
     Vertex s = *first, t = *(--last);

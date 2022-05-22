@@ -1,5 +1,5 @@
 BOOSTDIR='/usr/include'
-fname=nodeInfo_init_nullEdge
+fname=relationIterDescriptors
 
 compile: $(fname).cpp
 	g++ $(fname).cpp -o $(fname) -O3 -std=c++0x -fno-strict-aliasing -I $(BOOSTDIR)
