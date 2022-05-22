@@ -4,6 +4,7 @@
 #include <vector>
 #include <limits>
 #include <utility> /* std::pair */
+#include <algorithm> /* std::max */
 
 /* Used by most header files */
 #include <boost/tuple/tuple.hpp>
@@ -113,3 +114,20 @@ struct RevGraphOper {
 };
 
 Vertex NULL_VERTEX = boost::graph_traits<Graph>::null_vertex();
+
+
+void printPath(Graph& G, Vertex& s, Vertex& t, PredPMap pred, DistPMap dist, bool isPath, int cnt) {
+    Vertex temp = t;
+    std::cout << "Visited " << cnt << " vertices" << std::endl;
+    if (!isPath) {
+        std::cout << "There is no path from s to t" << std::endl;
+        return;
+    }
+    std::cout << "The shortest path found: ";
+    while (s != temp) {
+        std::cout << temp << " <- ";
+        temp = boost::source(pred[temp], G);
+    }
+    std::cout << s << std::endl;
+    std::cout << "Dist to t: " << dist[t] << std::endl;
+}

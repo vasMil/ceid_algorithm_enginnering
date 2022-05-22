@@ -37,7 +37,7 @@ bool Dijkstra_SP(
         for (boost::tie(out_eit, out_eit_end) = functor.adj_edges(u, G); out_eit != out_eit_end; ++out_eit) {
             e = *out_eit;
             v = functor.opposite(e, G);
-            adj_vert_dist = cur_vert_dist + cost[*out_eit];
+            adj_vert_dist = cur_vert_dist + cost[e];
             if (!visited[v]) {
                 visited[v] = true;
                 CompareNodes::pmap_dist[v] = adj_vert_dist;
@@ -52,10 +52,9 @@ bool Dijkstra_SP(
             else {
                 continue;
             }
-            pred[v] = *out_eit;
+            pred[v] = e;
         }
     }
-    
     return false;
 }
 
@@ -116,28 +115,46 @@ Vertex getFurthestAwayVertex(std::vector<std::pair<Vertex, int> >& distFromL, st
 }
 
 
-void prep_A_star(Graph& G) {
+void prep_A_star(Graph& G, Vertex& t) {
+    int i = 0;
+    int d_L1t, d_tL1, d_L2t, d_tL2;
+    LowerBoundPMap lbPMap = boost::get(&NodeInfo::lowerBound, G);
+    CostPMap cost = boost::get(&EdgeInfo::cost, G);
+    VertexIter vit, vit_end;
+    EdgeIter eit, eit_end;
+    Vertex u, v;
+
     // Let the first landmark be the first vertex in the (first dimension of the) adjacency_list;
     Vertex L1 = *(boost::vertices(G).first);
     auto distFromL1 = getDistance_Landmark(G, L1, GraphOper::getInstance());
     auto distToL1 = getDistance_Landmark(G, L1, RevGraphOper::getInstance());
     
-    for (int i = 0; i < distFromL1.size(); ++i) {
-        std::cout << i << ".distL1 = " << distFromL1[i].second << std::endl;
-    }
-    for (int i = 0; i < distToL1.size(); ++i) {
-        std::cout << i << ".rev_distL1 = " << distToL1[i].second << std::endl;
-    }
-    
     Vertex L2 = getFurthestAwayVertex(distFromL1, distToL1);
     auto distFromL2 = getDistance_Landmark(G, L2, GraphOper::getInstance());
     auto distToL2 = getDistance_Landmark(G, L2, RevGraphOper::getInstance());
-    
-    // for (int i = 0; i < distFromL2.size(); ++i) {
-    //     std::cout << i << ".distL2 = " << distFromL2[i].second << std::endl;
-    // }
-    // for (int i = 0; i < distToL2.size(); ++i) {
-    //     std::cout << i << ".rev_distL2 = " << distToL2[i].second << std::endl;
-    // }
-    std::cout << "\n\n" << "L2 = " << L2 << std::endl;
+ 
+    // Get d(L, t) and d(t, L) for each of the landmarks
+    d_L1t = distFromL1[t].second;
+    d_tL1 = distToL1[t].second;
+    d_L2t = distFromL2[t].second;
+    d_tL2 = distToL2[t].second;
+
+    // Calculate the lower bounds
+    for(boost::tie(vit, vit_end) = boost::vertices(G); vit != vit_end; ++vit) {
+        lbPMap[*vit] = std::max({
+            distToL1[i].second - d_tL1,
+            d_L1t - distFromL1[i].second,
+            distToL2[i].second - d_tL2,
+            d_L2t - distFromL2[i].second
+        });
+        i++;
+    }
+
+    // Update EdgeInfo::cost
+    for(boost::tie(eit, eit_end) = boost::edges(G); eit != eit_end; ++eit) {
+        u = boost::source(*eit, G);
+        v = boost::target(*eit, G);
+        cost[*eit] = cost[*eit] + lbPMap[v] - lbPMap[u];
+    }
+    return;
 }
