@@ -11,7 +11,7 @@ int test_Dijkstra(int n_vertices, int m_edges) {
     PredPMap pred = boost::get(&NodeInfo::pred, G);
     DistPMap dist = boost::get(&NodeInfo::dist, G);
 
-    randomGraph(G, cost, n_vertices, m_edges, 0, 1000);
+    randomGraph(G, n_vertices, m_edges, 0, 1000);
     
     // Env for Dijkstra_SP
     int cnt = 0, i = 0, cnt_same_pred = 0, cnt_same_dist = 0, cnt_difInit_pred = 0, cnt_difInit_dist = 0;
@@ -85,7 +85,7 @@ void test_printSmallGraph_DijkstraSP(int n_vertices, int m_edges) {
     DistPMap dist = boost::get(&NodeInfo::dist, G);
 
     // Create the random graph
-    randomGraph(G, cost, n_vertices, m_edges, 0, 1000);
+    randomGraph(G, n_vertices, m_edges, 0, 1000);
 
     // Print the graph
     boost::write_graphviz(std::cout, G, boost::default_writer(), boost::make_label_writer(cost));
@@ -116,4 +116,78 @@ void test_printSmallGraph_DijkstraSP(int n_vertices, int m_edges) {
     std::cout << "Total cost of the path using dist bundled property: " << dist[*(--boost::vertices(G).second)] << std::endl;
     std::cout << "\n...test_printSmallGraph_DijkstraSP... Done" << std::endl;
     return;
+}
+
+void printPath(Graph& G, Vertex& s, Vertex& t, PredPMap pred, DistPMap dist, bool isPath, int cnt) {
+    Vertex temp = t;
+    std::cout << "Visited " << cnt << " vertices" << std::endl;
+    if (!isPath) {
+        std::cout << "There is no path from s to t" << std::endl;
+        return;
+    }
+    std::cout << "The shortest path found: ";
+    while (s != temp) {
+        std::cout << temp << " <- ";
+        temp = boost::source(pred[temp], G);
+    }
+    std::cout << s << std::endl;
+    std::cout << "Dist to t: " << dist[t] << std::endl;
+}
+
+void test_A_star(int n_vertices, int m_edges, bool printGraph = false) {
+    // Declaire graph G
+    Graph G;
+    // Get the property maps
+    CostPMap cost = boost::get(&EdgeInfo::cost, G);
+    PredPMap pred = boost::get(&NodeInfo::pred, G);
+    DistPMap dist = boost::get(&NodeInfo::dist, G);
+    LowerBoundPMap lb = boost::get(&NodeInfo::lowerBound, G);
+
+    // Create the random graph
+    randomGraph(G, n_vertices, m_edges, 0, 100);
+    // // Print it
+    if(printGraph) {
+        boost::write_graphviz(std::cout, G, boost::default_writer(), boost::make_label_writer(cost));
+        std::cout << std::endl << std::endl;
+    }
+    
+    // Get the starting vertex s and the target vertex t
+    VertexIter first, last;
+    boost::tie(first, last) = boost::vertices(G);
+    Vertex s = *first, t = *(--last);
+    // Init counter to 0 for Dijkstra
+    int cnt = 0;
+    bool isPath;
+
+    // Run Dijkstra
+    std::cout << "Dijkstra_SP Running..." << std::endl;
+    isPath = Dijkstra_SP(G, s, t, cost, pred, dist, cnt, GraphOper::getInstance());
+    std::cout << "Dijkstra_SP Done..." << std::endl << std::endl;
+
+    // Print the path and the total cost
+    std::cout << "Printing Dijkstra_SP results..." << std::endl << std::endl;
+    printPath(G, s, t, pred, dist, isPath, cnt);
+    std::cout << "Printing Dijkstra_SP results Done..." << std::endl << std::endl;
+
+    // Preprocess costs for A*
+    std::cout << "A* preprocessing Running..." << std::endl;
+    prep_A_star(G, t);
+    std::cout << "A* preprocessing Done..." << std::endl;
+
+    // Clear counter
+    cnt = 0;
+
+    // Run A*
+    std::cout << "A* Running..." << std::endl;
+    cost = boost::get(&EdgeInfo::cost, G);
+    isPath = Dijkstra_SP(G, s, t, cost, pred, dist, cnt, GraphOper::getInstance());
+    std::cout << "A* Done..." << std::endl << std::endl;
+
+    // Fix dist
+    dist[t] = dist[t] + lb[s];
+
+    // Print the path and the total cost
+    std::cout << "Printing A* results..." << std::endl << std::endl;
+    printPath(G, s, t, pred, dist, isPath, cnt);
+    std::cout << "Printing A* results Done..." << std::endl << std::endl;
 }

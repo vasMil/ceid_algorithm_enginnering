@@ -1,7 +1,7 @@
 #pragma once
 
-template <typename CostPropertyMap>
-void randomGraph(Graph& G, CostPropertyMap& cost, int n_nodes, int m_edges, int min_cost, int max_cost) {
+std::pair<Vertex, Vertex> randomGraph(Graph& G, int n_nodes, int m_edges, int min_cost, int max_cost) {
+    CostPMap cost = boost::get(&EdgeInfo::cost, G);
     // Initialize a random number generator
     boost::mt19937 rng;
     // add a seed to it
@@ -17,4 +17,5 @@ void randomGraph(Graph& G, CostPropertyMap& cost, int n_nodes, int m_edges, int 
     for (boost::tie(first, last) = edges(G); first != last; ++first) {
         cost[*first] = dist(rng);
     }
+    return std::make_pair(boost::random_vertex(G, rng), boost::random_vertex(G, rng));
 }
