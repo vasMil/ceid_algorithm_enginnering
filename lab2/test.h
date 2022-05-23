@@ -35,7 +35,7 @@ int test_Dijkstra(int n_vertices, int m_edges) {
         boost::make_iterator_property_map(
             boost_dist.begin(), get(boost::vertex_index, G)
             )).weight_map(wemap));
-    
+
     // Check if the output of the two match
     for(i = 0; first != last; ++first) {
         Vertex myPredVert = boost::source(pred[*first], G), boostPredVert =  boost_pred[i];
@@ -145,7 +145,7 @@ void test_A_star(int n_vertices, int m_edges, bool printGraph = false) {
 
     // Create the random graph
     randomGraph(G, n_vertices, m_edges, 0, 100);
-    // // Print it
+    // Print it
     if(printGraph) {
         boost::write_graphviz(std::cout, G, boost::default_writer(), boost::make_label_writer(cost));
         std::cout << std::endl << std::endl;
@@ -181,13 +181,15 @@ void test_A_star(int n_vertices, int m_edges, bool printGraph = false) {
     std::cout << "A* Running..." << std::endl;
     cost = boost::get(&EdgeInfo::cost, G);
     isPath = Dijkstra_SP(G, s, t, cost, pred, dist, cnt, GraphOper::getInstance());
-    std::cout << "A* Done..." << std::endl << std::endl;
+    std::cout << "A* Done..." << std::endl;
 
     // Fix dist
-    dist[t] = dist[t] + lb[s];
+    std::cout << "A* postprocessing Running..." << std::endl;
+    postp_A_star(G, s);
+    std::cout << "A* postprocessing Done..." << std::endl;
 
     // Print the path and the total cost
-    std::cout << "Printing A* results..." << std::endl << std::endl;
+    std::cout << "\nPrinting A* results..." << std::endl;
     printPath(G, s, t, pred, dist, isPath, cnt);
-    std::cout << "Printing A* results Done..." << std::endl << std::endl;
+    std::cout << "Printing A* results Done...\n" << std::endl;
 }

@@ -7,6 +7,7 @@
 #include <algorithm> /* std::max */
 #include <fstream>
 #include <chrono>
+#include <stdexcept>
 
 /* Used by most header files */
 #include <boost/tuple/tuple.hpp>
@@ -21,6 +22,13 @@
 /* Used in test.h */
 #include <boost/graph/graphviz.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
+
+#define DEBUG false
+// Due to canonicalizing A* edge costs (assigning 0 to edges that have negative cost)
+// Enabling DEBUG will not work, because I am not able to recover the distance(s, t)
+// Not canonicalizing leads to memory leaks (invalid memory reads and writes)
+// due to accessing the handles vector (containing the handles for the binomial queue)
+// at an index (Vertex) that has been visited and popped from the queue at a later stage.
 
 struct NodeInfo;
 struct EdgeInfo;
@@ -46,8 +54,8 @@ struct NodeInfo {
     int dist;
     int lowerBound; // Will be used in A*
     NodeInfo() {
-        this->dist = std::numeric_limits<int>::max();
-        this->lowerBound = std::numeric_limits<int>::max();
+        this->dist = 0;
+        this->lowerBound = 0;
         this->pred = NULL_EDGE;
     }
 };
@@ -126,4 +134,22 @@ int getRandomInt(int min, int max) {
     boost::uniform_int<> dist(min, max);
 
     return dist(rng);
+}
+
+template <typename PMap_t, typename Iter_t>
+std::vector<int*> extractIntPMap(Graph& G, PMap_t& pmap, Iter_t it, Iter_t it_end) {
+    std::vector<int*> extractMap;
+    for(; it != it_end; ++it) {
+        extractMap.push_back(new int(pmap[*it]));
+    }
+    return extractMap;
+}
+
+void clearNodeInfo(Graph& G, DistPMap& dist, LowerBoundPMap& lowerBound, PredPMap& pred) {
+    VertexIter vit, vit_end;
+    for(boost::tie(vit, vit_end) = boost::vertices(G); vit != vit_end; ++vit) {
+        dist[*vit] = 0;
+        lowerBound[*vit] = 0;
+        pred[*vit] = NULL_EDGE;
+    }
 }

@@ -14,7 +14,9 @@ bool Dijkstra_SP(
     // Parallel helper vectors
     std::vector<VBH_handle_t> handles(boost::num_vertices(G));
     std::vector<bool> visited(boost::num_vertices(G), false);
-
+#if DEBUG
+    std::vector<bool> popped(boost::num_vertices(G), false);
+#endif
     // Helper variables
     Vertex u, v;
     Edge e;
@@ -30,9 +32,11 @@ bool Dijkstra_SP(
 
     while(!PQ.empty()) {
         u = PQ.top(); PQ.pop();
+#if DEBUG
+        popped[u] = true;
+#endif
         iter_cnt++;
         if (u == t) return true;
-        
         cur_vert_dist = CompareNodes::pmap_dist[u];
         for (boost::tie(out_eit, out_eit_end) = functor.adj_edges(u, G); out_eit != out_eit_end; ++out_eit) {
             e = *out_eit;
@@ -47,6 +51,11 @@ bool Dijkstra_SP(
                 CompareNodes::pmap_dist[v] = adj_vert_dist;
                 // As distance decreases -> priority increases
                 // trivial example: https://coliru.stacked-crooked.com/a/b7ea797e74d4b0ad
+#if DEBUG
+                if(popped[v]) {
+                    // throw std::runtime_error("Trying to access the handle of an element that has been popped");
+                }
+#endif
                 PQ.increase(handles[v]);
             }
             else {
@@ -75,7 +84,7 @@ std::vector<std::pair<Vertex, int> > getDistance_Landmark(Graph& G, Vertex& L, G
     // on the preprocessing state
     for(boost::tie(first, last) = boost::vertices(G); first != last; ++first) {
         distPairVec[i] = std::make_pair(*first, dist[*first]);
-        dist[*first] = std::numeric_limits<int>::max();
+        dist[*first] = 0;
         pred[*first] = NULL_EDGE;
         ++i;
     }
@@ -155,6 +164,34 @@ void prep_A_star(Graph& G, Vertex& t) {
         u = boost::source(*eit, G);
         v = boost::target(*eit, G);
         cost[*eit] = cost[*eit] + lbPMap[v] - lbPMap[u];
+        // Canonicalize??? 
+        if (cost[*eit] < 0) {
+            cost[*eit] = cost[*eit] - lbPMap[v] + lbPMap[u];
+            // throw std::runtime_error("A* edge has a negative cost!");
+        }
     }
     return;
+}
+
+// Fixes distances and edge costs by factoring out the heuristic
+void postp_A_star(Graph& G, Vertex& s) {
+    EdgeIter eit, eit_end;
+    VertexIter vit, vit_end;
+    Vertex v, u;
+    LowerBoundPMap lb = boost::get(&NodeInfo::lowerBound, G);
+    CostPMap cost = boost::get(&EdgeInfo::cost, G);
+    DistPMap dist = boost::get(&NodeInfo::dist, G);
+    PredPMap pred = boost::get(&NodeInfo::pred, G);
+
+    // Fix distances
+    for(boost::tie(vit, vit_end) = boost::vertices(G); vit != vit_end; ++vit) {
+        dist[*vit] = dist[*vit] + lb[s] - lb[*vit];
+    }
+
+    // Fix edge costs
+    for(boost::tie(eit, eit_end) = boost::edges(G); eit != eit_end; ++eit) {
+        u = boost::source(*eit, G);
+        v = boost::target(*eit, G);
+        cost[*eit] = cost[*eit] - lb[v] + lb[u];
+    }
 }

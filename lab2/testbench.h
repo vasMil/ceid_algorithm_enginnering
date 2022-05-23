@@ -42,6 +42,9 @@ struct Durations {
 
 
 // typeOfGraph may be "grid" or "random"
+// if grid then n_nodes is the number of rows and m_edges the number of columns in that grid
+// else if random then it is the number of vertices and edges respectively
+// else throw an error
 void timeMe(
     std::fstream& outfile, std::string typeOfGraph, 
     std::pair<Vertex, Vertex> (*graphGenerator)(Graph&, int, int, int, int), 
@@ -50,23 +53,54 @@ void timeMe(
     // Helper variables
     Graph G;
     Durations d(typeOfGraph);
-    d.numOfNodes = n_nodes;
-    d.numOfEdges = m_edges;
     CostPMap cost = boost::get(&EdgeInfo::cost, G);
     PredPMap pred = boost::get(&NodeInfo::pred, G);
+    std::vector<Vertex> predVec(n_nodes);
     DistPMap dist = boost::get(&NodeInfo::dist, G);
+    std::vector<int> distVec(n_nodes);
+    LowerBoundPMap lowerBound = boost::get(&NodeInfo::lowerBound, G);
     int cnt = 0;
     Vertex s, t;
+    VertexIter vit, vit_end;
+
+    if(typeOfGraph == "grid") {
+        d.numOfNodes = n_nodes*m_edges;
+        d.numOfEdges = 2*d.numOfNodes - n_nodes - m_edges;
+    }
+    else if (typeOfGraph == "random") {
+        d.numOfNodes = n_nodes;
+        d.numOfEdges = m_edges;
+    }
+    else {
+        throw std::runtime_error("Invalid typeOfGraph");
+    }
     
     // Create the graph using the provided graph generator
     boost::tie(s, t) = graphGenerator(G, n_nodes, m_edges, min_cost, max_cost);
 
+    // Run BOOSTs Dijkstra
+    boost::dijkstra_shortest_paths(G, s, boost::predecessor_map(&predVec[0]).distance_map(
+    boost::make_iterator_property_map(
+        distVec.begin(), get(boost::vertex_index, G)
+        )).weight_map(cost));
+
+    // Clear NodeInfo - Redundant since Dijkstra_SP requires no initialization
+    clearNodeInfo(G, dist, lowerBound, pred);
+
     // Run Dijkstra
     auto t0 = std::chrono::high_resolution_clock::now();
-    Dijkstra_SP(G, s, t, cost, pred, dist, cnt, GraphOper::getInstance());
+    bool isPath = Dijkstra_SP(G, s, t, cost, pred, dist, cnt, GraphOper::getInstance());
     auto t1 = std::chrono::high_resolution_clock::now();
     d.nodesVisited_Dijkstra_SP = cnt;
     d.time_Dijkstra_SP = t1-t0;
+    // Extract predecessor pMap
+    boost::tie(vit, vit_end) = boost::vertices(G);
+#if DEBUG
+    auto distVecDijkstraSP = extractIntPMap(G, dist, vit, vit_end);
+#endif
+
+    // Clear NodeInfo - Redundant since Dijkstra_SP requires no initialization
+    clearNodeInfo(G, dist, lowerBound, pred);
 
     // Prepare for A*
     cnt = 0; // Clear counter
@@ -78,6 +112,45 @@ void timeMe(
     auto t3 = std::chrono::high_resolution_clock::now();
     d.nodesVisited_A_star = cnt;
     d.time_A_star = t3-t2;
+
+    // Postprocess A* - factor out heuristic
+    postp_A_star(G, s);
+    dist = boost::get(&NodeInfo::dist, G);
+
+    // Extract distance pMap
+    boost::tie(vit, vit_end) = boost::vertices(G);
+#if DEBUG
+    auto distVecAStar = extractIntPMap(G, dist, vit, vit_end);
+#endif
+
+    /* Ensure the returned path is correct both for Dijkstra_SP and A_star 
+    using BOOSTs Dijkstra*/
+    if(!isPath) {
+        std::cout << "There is no path from s to t" << std::endl;
+        d.save_into_csv(outfile);
+        return;
+    }
+#if DEBUG
+    // For the vertices in shortest path (s,t) check if the distance vectors match, those returned by BOOST
+    Vertex temp = t;
+    while(temp != s) {
+        if(*distVecDijkstraSP[temp] != distVec[temp] || *distVecAStar[temp] != distVec[temp]) {
+            std::cout << "Dijkstra_SP: " << *distVecDijkstraSP[temp] << std::endl;
+            std::cout << "A*: " << *distVecAStar[temp] << std::endl;
+            std::cout << "BOOST: " << distVec[temp] << std::endl;
+            std::cout << "h_t(" << temp << ") = " << lowerBound[temp] << std::endl;
+            std::cout << "h_t(s) = " << lowerBound[temp] << std::endl;
+            std::cout << "##################################" << std::endl;
+            throw std::runtime_error("Distance vectors do not match, for the vertices in shortest path!");
+        }
+        temp = predVec[temp];
+    }
+
+    for(int i = 0; i < distVecDijkstraSP.size(); i++) {
+        delete distVecDijkstraSP[i];
+        delete distVecAStar[i];
+    }
+#endif
 
     d.save_into_csv(outfile);
     return;
