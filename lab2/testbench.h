@@ -62,6 +62,7 @@ void timeMe(
     int cnt = 0;
     Vertex s, t;
     VertexIter vit, vit_end;
+    Vertex temp;
 
     if(typeOfGraph == "grid") {
         d.numOfNodes = n_nodes*m_edges;
@@ -93,17 +94,40 @@ void timeMe(
     auto t1 = std::chrono::high_resolution_clock::now();
     d.nodesVisited_Dijkstra_SP = cnt;
     d.time_Dijkstra_SP = t1-t0;
-    // Extract predecessor pMap
+    
+#if DEBUG /* Ensure the returned path is correct for Dijkstra_SP using BOOSTs Dijkstra*/
+    // Extract distance pMap
     boost::tie(vit, vit_end) = boost::vertices(G);
-#if DEBUG
     auto distVecDijkstraSP = extractIntPMap(G, dist, vit, vit_end);
+    if(!isPath) {
+        std::cout << "There is no path from s to t" << std::endl;
+    }
+    
+    // For the vertices in shortest path (s,t) check if the distance vectors match, those returned by BOOST
+    temp = t;
+    while(temp != s && isPath) {
+        if(*distVecDijkstraSP[temp] != distVec[temp]) {
+            std::cout << "Dijkstra_SP: " << *distVecDijkstraSP[temp] << std::endl;
+            std::cout << "BOOST: " << distVec[temp] << std::endl;
+            std::cout << "h_t(" << temp << ") = " << lowerBound[temp] << std::endl;
+            std::cout << "h_t(s) = " << lowerBound[temp] << std::endl;
+            std::cout << "##################################" << std::endl;
+            throw std::runtime_error("Distance vectors do not match, for the vertices in shortest path!");
+        }
+        temp = predVec[temp];
+    }
+
+    // Cleanup
+    for(int i = 0; i < distVecDijkstraSP.size(); i++) {
+        delete distVecDijkstraSP[i];
+    }
 #endif
 
-    // Clear NodeInfo - Redundant since Dijkstra_SP requires no initialization
+    // Clear NodeInfo and the iteration counter
     clearNodeInfo(G, dist, lowerBound, pred);
+    cnt = 0;
 
     // Prepare for A*
-    cnt = 0; // Clear counter
     prep_A_star(G, t);
 
     // Run A*
@@ -117,25 +141,19 @@ void timeMe(
     postp_A_star(G, s);
     dist = boost::get(&NodeInfo::dist, G);
 
+#if DEBUG /* Ensure the returned path is correct for A_star using BOOSTs Dijkstra */
     // Extract distance pMap
     boost::tie(vit, vit_end) = boost::vertices(G);
-#if DEBUG
     auto distVecAStar = extractIntPMap(G, dist, vit, vit_end);
-#endif
 
-    /* Ensure the returned path is correct both for Dijkstra_SP and A_star 
-    using BOOSTs Dijkstra*/
     if(!isPath) {
         std::cout << "There is no path from s to t" << std::endl;
-        d.save_into_csv(outfile);
-        return;
     }
-#if DEBUG
+    
     // For the vertices in shortest path (s,t) check if the distance vectors match, those returned by BOOST
-    Vertex temp = t;
-    while(temp != s) {
-        if(*distVecDijkstraSP[temp] != distVec[temp] || *distVecAStar[temp] != distVec[temp]) {
-            std::cout << "Dijkstra_SP: " << *distVecDijkstraSP[temp] << std::endl;
+    temp = t;
+    while(temp != s && isPath) {
+        if(*distVecAStar[temp] != distVec[temp]) {
             std::cout << "A*: " << *distVecAStar[temp] << std::endl;
             std::cout << "BOOST: " << distVec[temp] << std::endl;
             std::cout << "h_t(" << temp << ") = " << lowerBound[temp] << std::endl;
@@ -147,7 +165,6 @@ void timeMe(
     }
 
     for(int i = 0; i < distVecDijkstraSP.size(); i++) {
-        delete distVecDijkstraSP[i];
         delete distVecAStar[i];
     }
 #endif

@@ -23,12 +23,25 @@
 #include <boost/graph/graphviz.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 
-#define DEBUG false
-// Due to canonicalizing A* edge costs (assigning 0 to edges that have negative cost)
+#define DEBUG true
+#define CANONICALIZE false
+// If canonicalizing A* edge costs is enabled (assigning 0 to edges that have negative cost)
 // Enabling DEBUG will not work, because I am not able to recover the distance(s, t)
 // Not canonicalizing leads to memory leaks (invalid memory reads and writes)
 // due to accessing the handles vector (containing the handles for the binomial queue)
-// at an index (Vertex) that has been visited and popped from the queue at a later stage.
+// at an index (Vertex) that has been visited and popped from the queue at a previous stage.
+
+#define GUARD_A_STAR true
+// I can handle the situation above by placing a guard before accessing the handle vector.
+// If the node has been popped (i.e. the distance from the starting node s to that node has been finalized)
+// there is no way the algorithm will push it back into the priority queue.
+// Thus the guard will just be a vector that will check whether the node has been popped before.
+
+// I also noticed that the initial values of the distance property map
+// and the lowerBound property map have an impact on A* (as to how many edges with negative costs are found),
+// even though they are not used in Dijkstra_SP
+#define INIT_DIST std::numeric_limits<int>::max()
+#define INIT_LOWER_BOUND 0
 
 struct NodeInfo;
 struct EdgeInfo;
@@ -54,8 +67,8 @@ struct NodeInfo {
     int dist;
     int lowerBound; // Will be used in A*
     NodeInfo() {
-        this->dist = 0;
-        this->lowerBound = 0;
+        this->dist = INIT_DIST;
+        this->lowerBound = INIT_LOWER_BOUND;
         this->pred = NULL_EDGE;
     }
 };
@@ -148,8 +161,8 @@ std::vector<int*> extractIntPMap(Graph& G, PMap_t& pmap, Iter_t it, Iter_t it_en
 void clearNodeInfo(Graph& G, DistPMap& dist, LowerBoundPMap& lowerBound, PredPMap& pred) {
     VertexIter vit, vit_end;
     for(boost::tie(vit, vit_end) = boost::vertices(G); vit != vit_end; ++vit) {
-        dist[*vit] = 0;
-        lowerBound[*vit] = 0;
+        dist[*vit] = INIT_DIST;
+        lowerBound[*vit] = INIT_LOWER_BOUND;
         pred[*vit] = NULL_EDGE;
     }
 }

@@ -14,7 +14,7 @@ bool Dijkstra_SP(
     // Parallel helper vectors
     std::vector<VBH_handle_t> handles(boost::num_vertices(G));
     std::vector<bool> visited(boost::num_vertices(G), false);
-#if DEBUG
+#if GUARD_A_STAR
     std::vector<bool> popped(boost::num_vertices(G), false);
 #endif
     // Helper variables
@@ -32,7 +32,7 @@ bool Dijkstra_SP(
 
     while(!PQ.empty()) {
         u = PQ.top(); PQ.pop();
-#if DEBUG
+#if GUARD_A_STAR
         popped[u] = true;
 #endif
         iter_cnt++;
@@ -51,9 +51,10 @@ bool Dijkstra_SP(
                 CompareNodes::pmap_dist[v] = adj_vert_dist;
                 // As distance decreases -> priority increases
                 // trivial example: https://coliru.stacked-crooked.com/a/b7ea797e74d4b0ad
-#if DEBUG
+#if GUARD_A_STAR
                 if(popped[v]) {
                     // throw std::runtime_error("Trying to access the handle of an element that has been popped");
+                    continue;
                 }
 #endif
                 PQ.increase(handles[v]);
@@ -84,7 +85,7 @@ std::vector<std::pair<Vertex, int> > getDistance_Landmark(Graph& G, Vertex& L, G
     // on the preprocessing state
     for(boost::tie(first, last) = boost::vertices(G); first != last; ++first) {
         distPairVec[i] = std::make_pair(*first, dist[*first]);
-        dist[*first] = 0;
+        dist[*first] = INIT_DIST;
         pred[*first] = NULL_EDGE;
         ++i;
     }
@@ -164,11 +165,14 @@ void prep_A_star(Graph& G, Vertex& t) {
         u = boost::source(*eit, G);
         v = boost::target(*eit, G);
         cost[*eit] = cost[*eit] + lbPMap[v] - lbPMap[u];
-        // Canonicalize??? 
+        // if (cost[*eit] < 0) std::cout << "Found a negetive cost" << std::endl;
+#if CANONICALIZE
+        // Canonicalize???
         if (cost[*eit] < 0) {
             cost[*eit] = cost[*eit] - lbPMap[v] + lbPMap[u];
             // throw std::runtime_error("A* edge has a negative cost!");
         }
+#endif
     }
     return;
 }

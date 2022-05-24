@@ -27,7 +27,7 @@ int main() {
     // // Test Dijkstra_SP
     // test_Dijkstra(1000, 2000);
     // test_printSmallGraph_DijkstraSP(10,25);
-    // test_A_star(10, 20);
+    // test_A_star(60000, 120000); 
     outfile.close();
     return 0;
 }
