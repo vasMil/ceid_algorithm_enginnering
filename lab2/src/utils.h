@@ -11,6 +11,7 @@
 
 /* Used by most header files */
 #include <boost/tuple/tuple.hpp>
+#include <boost/graph/graph_traits.hpp>
 
 /* Used by graphGenerators.h */
 #include <boost/random/mersenne_twister.hpp>
@@ -24,23 +25,9 @@
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 
 #define DEBUG true
-#define CANONICALIZE false
-// If canonicalizing A* edge costs is enabled (assigning 0 to edges that have negative cost)
-// Enabling DEBUG will not work, because I am not able to recover the distance(s, t)
-// Not canonicalizing leads to memory leaks (invalid memory reads and writes)
-// due to accessing the handles vector (containing the handles for the binomial queue)
-// at an index (Vertex) that has been visited and popped from the queue at a previous stage.
+#define POSTPROCESS_EDGE_COSTS false
 
-#define GUARD_A_STAR true
-// I can handle the situation above by placing a guard before accessing the handle vector.
-// If the node has been popped (i.e. the distance from the starting node s to that node has been finalized)
-// there is no way the algorithm will push it back into the priority queue.
-// Thus the guard will just be a vector that will check whether the node has been popped before.
-
-// I also noticed that the initial values of the distance property map
-// and the lowerBound property map have an impact on A* (as to how many edges with negative costs are found),
-// even though they are not used in Dijkstra_SP
-#define INIT_DIST std::numeric_limits<int>::max()
+#define INIT_DIST std::numeric_limits<int>::max()/2
 #define INIT_LOWER_BOUND 0
 
 struct NodeInfo;
@@ -137,17 +124,6 @@ struct RevGraphOper {
 };
 
 Vertex NULL_VERTEX = boost::graph_traits<Graph>::null_vertex();
-
-int getRandomInt(int min, int max) {
-    // Initialize a random number generator
-    boost::mt19937 rng;
-    // add a seed to it
-    rng.seed(uint32_t(time(0)));
-    // Define the distribustion and the range of numbers.
-    boost::uniform_int<> dist(min, max);
-
-    return dist(rng);
-}
 
 template <typename PMap_t, typename Iter_t>
 std::vector<int*> extractIntPMap(Graph& G, PMap_t& pmap, Iter_t it, Iter_t it_end) {

@@ -14,9 +14,7 @@ bool Dijkstra_SP(
     // Parallel helper vectors
     std::vector<VBH_handle_t> handles(boost::num_vertices(G));
     std::vector<bool> visited(boost::num_vertices(G), false);
-#if GUARD_A_STAR
-    std::vector<bool> popped(boost::num_vertices(G), false);
-#endif
+
     // Helper variables
     Vertex u, v;
     Edge e;
@@ -32,11 +30,9 @@ bool Dijkstra_SP(
 
     while(!PQ.empty()) {
         u = PQ.top(); PQ.pop();
-#if GUARD_A_STAR
-        popped[u] = true;
-#endif
         iter_cnt++;
         if (u == t) return true;
+        
         cur_vert_dist = CompareNodes::pmap_dist[u];
         for (boost::tie(out_eit, out_eit_end) = functor.adj_edges(u, G); out_eit != out_eit_end; ++out_eit) {
             e = *out_eit;
@@ -51,12 +47,6 @@ bool Dijkstra_SP(
                 CompareNodes::pmap_dist[v] = adj_vert_dist;
                 // As distance decreases -> priority increases
                 // trivial example: https://coliru.stacked-crooked.com/a/b7ea797e74d4b0ad
-#if GUARD_A_STAR
-                if(popped[v]) {
-                    // throw std::runtime_error("Trying to access the handle of an element that has been popped");
-                    continue;
-                }
-#endif
                 PQ.increase(handles[v]);
             }
             else {
@@ -98,14 +88,14 @@ Vertex getFurthestAwayVertex(std::vector<std::pair<Vertex, int> >& distFromL, st
     int max_dist_rev = distToL[0].second;
 
     for (int i=1; i < distFromL.size(); i++) {
-        if (max_dist == std::numeric_limits<int>::max() && distFromL[i].second == std::numeric_limits<int>::max()) {
+        if (max_dist == INIT_DIST && distFromL[i].second == INIT_DIST) {
             if (max_dist_rev < distToL[i].second) {
                 v = distToL[i].first;
                 max_dist_rev = distToL[i].second;
             }
             continue;
         }
-        if (max_dist_rev == std::numeric_limits<int>::max() && distToL[i].second == std::numeric_limits<int>::max()) {
+        if (max_dist_rev == INIT_DIST && distToL[i].second == INIT_DIST) {
             if (max_dist < distFromL[i].second) {
                 v = distFromL[i].first;
                 max_dist = distFromL[i].second;
@@ -164,15 +154,11 @@ void prep_A_star(Graph& G, Vertex& t) {
     for(boost::tie(eit, eit_end) = boost::edges(G); eit != eit_end; ++eit) {
         u = boost::source(*eit, G);
         v = boost::target(*eit, G);
-        cost[*eit] = cost[*eit] + lbPMap[v] - lbPMap[u];
-        // if (cost[*eit] < 0) std::cout << "Found a negetive cost" << std::endl;
-#if CANONICALIZE
-        // Canonicalize???
-        if (cost[*eit] < 0) {
-            cost[*eit] = cost[*eit] - lbPMap[v] + lbPMap[u];
-            // throw std::runtime_error("A* edge has a negative cost!");
+        // Do not allow negative costs!
+        if(cost[*eit] + lbPMap[v] - lbPMap[u] < 0){
+            throw std::runtime_error("A* prerpocessing calculated negative cost for an Edge");
         }
-#endif
+        cost[*eit] = cost[*eit] + lbPMap[v] - lbPMap[u];
     }
     return;
 }
@@ -193,9 +179,11 @@ void postp_A_star(Graph& G, Vertex& s) {
     }
 
     // Fix edge costs
+#if POSTPROCESS_EDGE_COSTS
     for(boost::tie(eit, eit_end) = boost::edges(G); eit != eit_end; ++eit) {
         u = boost::source(*eit, G);
         v = boost::target(*eit, G);
         cost[*eit] = cost[*eit] - lb[v] + lb[u];
     }
+#endif
 }
