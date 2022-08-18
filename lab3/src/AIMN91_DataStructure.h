@@ -13,15 +13,16 @@ class AIMN91_DataStructure {
         int** D; // The distance matrix
 
         // The FORWARD Matrix - initially containing all NULL
-        Vertex* ** FORWARD;
+        // Vertex** FORWARD;
         // The BACKWARD Matrix - initially containing all NULL
-        Vertex* ** BACKWARD;
+        Vertex** BACKWARD;
         // Initialize the directed Graph
         Graph G;
         
         // updateForward() merging both the updates at DESC(x) and ANC(x)
 
     public:
+        Vertex** FORWARD;
         
         // Create an empty graph with num_vertices vertices
         AIMN91_DataStructure(int num_vertices) {
@@ -34,22 +35,36 @@ class AIMN91_DataStructure {
             this->num_edges = 0;
             this->upperCostBound = MAX_C;
 
-            FORWARD = new Vertex** [num_vertices];
-            BACKWARD = new Vertex** [num_vertices];
+            // Add vertices to the graph
+            Vertex temp[num_vertices];
+            for(int i=0; i < num_vertices; i++) {
+                temp[i] = boost::add_vertex(G);
+            }
+            DESCpmap DESC = get(&VertexInfo::desc, G);
+            ANCpmap ANC = get(&VertexInfo::anc, G);
+            for(int i = 0; i  < num_vertices; i++) {
+                ANC[temp[i]].root.content = temp[i];
+                DESC[temp[i]].root.content = temp[i];
+            }
+
+            // Allocate - Initialize arrays
+            FORWARD = new Vertex* [num_vertices];
+            BACKWARD = new Vertex* [num_vertices];
             D = new int* [num_vertices];
             for(int i=0; i < num_vertices; i++) {
-                FORWARD[i] = new Vertex* [num_vertices];
-                BACKWARD[i] = new Vertex* [num_vertices];
+                FORWARD[i] = new Vertex [num_vertices];
+                BACKWARD[i] = new Vertex [num_vertices];
                 D[i] = new int[num_vertices];
                 for(int j=0; j < num_vertices; j++) {
-                    FORWARD[i][j] = NULL;
-                    BACKWARD[i][j] = NULL;
+                    FORWARD[i][j] = NULL_VERTEX;
+                    BACKWARD[i][j] = NULL_VERTEX;
                     D[i][j] = INF;
                 }
             }
         }
 
         ~AIMN91_DataStructure() {
+            // Deallocate arrays
             for(int i=0; i < num_vertices; i++) {
                 delete FORWARD[i];
                 delete BACKWARD[i];
@@ -61,11 +76,17 @@ class AIMN91_DataStructure {
         }
 
         // Get vertices from graph G - adding new vertices should not be allowed
-        Vertex get_vertex(int vertex_id);
+        Vertex get_vertex(int vertex_id) {
+            return boost::vertex(vertex_id, this->G);
+        }
 
         // length(x,y) operation simply returns the record in matrix D at position (x,y)
         int length(Vertex x, Vertex y) {
-            return D[x][y];
+            // return D[x][y];
+            return 0;
+        }
+        int length(int xid, int yid) {
+            return D[xid][yid];
         }
 
         // minimal_path(x,y) operation returns the shortest path from x to y 
