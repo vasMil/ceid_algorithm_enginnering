@@ -10,20 +10,65 @@ class AIMN91_DataStructure {
         // You are better off using arrays instead of vectors.
         // Arrays use less memory and vectors are better with frequent
         // insertions and deletions which I am not going to be using
-        int** D; // The distance matrix
-
+        unsigned int** D; // The distance matrix
+        
         // The FORWARD Matrix - initially containing all NULL
-        // Vertex** FORWARD;
+        Node<Vertex>* ** FORWARD;
         // The BACKWARD Matrix - initially containing all NULL
-        Vertex** BACKWARD;
+        Node<Vertex>* ** BACKWARD;
         // Initialize the directed Graph
         Graph G;
-        
-        // updateForward() merging both the updates at DESC(x) and ANC(x)
+        // Property maps
+        Vertex_desc_pmap DESC;
+        Vertex_anc_pmap ANC;
 
-    public:
-        Vertex** FORWARD;
-        
+        // merging updateForward and updateBackward
+        void updateForward(Vertex x, Vertex i, Vertex j, DLTree<Vertex>& T, Node<Vertex>* T_id_guide[] = NULL) {
+            Vertex y, w;
+            std::queue<Vertex> Q;
+            DLTree<Vertex> N;
+            Node<Vertex>* N_id_guide[num_vertices];
+
+            Q.push(j);
+            while (!Q.empty()) {
+                y = Q.front();
+                Q.pop();
+                if(D[x][i] + 1 + D[j][y] < D[x][y]) {
+                    if (y == j) {
+                        auto temp = DESC[x].addChild(FORWARD[x][i], j);
+                        N_id_guide[j] = N.addChild(NULL, j);
+                        FORWARD[x][j] = temp;
+                    }
+                    else {
+                        // The parent of y in the tree DESC(j) is a different Node from the Node in DESC(x).
+                        // FORWARD[j][y] is a pointer to a Node containing y in tree DESC(j)
+                        // thus FORWARD[j][y]->parent->content returns the id of the parent of y
+                        // I may use that id to locate the Node in DESC(x) that has as content the same value (id)
+                        auto parent_of_y = FORWARD[x][FORWARD[j][y]->parent->content];
+                        auto temp = DESC[x].addChild(parent_of_y, y);
+                        N_id_guide[y] = N.addChild(N_id_guide[FORWARD[j][y]->parent->content], y);
+                        FORWARD[x][y] = temp;
+                    }
+                }
+                D[x][y] = D[x][i] + 1 + D[j][y];
+                if(T_id_guide != NULL) {
+                    auto ch_it = T_id_guide[y]->children.begin(); auto ch_end = T_id_guide[y]->children.end();
+                    for ( ; ch_it != ch_end; ch_it++) {
+                        Q.push((*ch_it)->content);
+                    }
+                }
+            }
+            if (!N.empty()) {
+                auto eit = ANC[i].edges().first; auto eend = ANC[i].edges().second;
+                for( ; eit != eend; eit++) {
+                    if((*eit).first->content == x) {
+                        updateForward((*eit).second->content, i, j, N, N_id_guide);
+                    }
+                }
+            }
+        }
+
+    public:        
         // Create an empty graph with num_vertices vertices
         AIMN91_DataStructure(int num_vertices) {
             // Make sure that matrix D has cost values < INF, so INF implies there is no path
@@ -36,43 +81,50 @@ class AIMN91_DataStructure {
             this->upperCostBound = MAX_C;
 
             // Add vertices to the graph
-            Vertex temp[num_vertices];
             for(int i=0; i < num_vertices; i++) {
-                temp[i] = boost::add_vertex(G);
-            }
-            DESCpmap DESC = get(&VertexInfo::desc, G);
-            ANCpmap ANC = get(&VertexInfo::anc, G);
-            for(int i = 0; i  < num_vertices; i++) {
-                ANC[temp[i]].root.content = temp[i];
-                DESC[temp[i]].root.content = temp[i];
+                boost::add_vertex(G);
             }
 
+
             // Allocate - Initialize arrays
-            FORWARD = new Vertex* [num_vertices];
-            BACKWARD = new Vertex* [num_vertices];
-            D = new int* [num_vertices];
+            FORWARD = new Node<Vertex>** [num_vertices];
+            BACKWARD = new Node<Vertex>** [num_vertices];
+            D = new unsigned int* [num_vertices];
             for(int i=0; i < num_vertices; i++) {
-                FORWARD[i] = new Vertex [num_vertices];
-                BACKWARD[i] = new Vertex [num_vertices];
-                D[i] = new int[num_vertices];
+                FORWARD[i] = new Node<Vertex>* [num_vertices];
+                BACKWARD[i] = new Node<Vertex>* [num_vertices];
+                D[i] = new unsigned int[num_vertices];
                 for(int j=0; j < num_vertices; j++) {
-                    FORWARD[i][j] = NULL_VERTEX;
-                    BACKWARD[i][j] = NULL_VERTEX;
-                    D[i][j] = INF;
+                    if (i == j) {
+                        D[i][j] = 0;
+                        continue;
+                    }
+                    FORWARD[i][j] = NULL;
+                    BACKWARD[i][j] = NULL;
+                    D[i][j] = 0;
                 }
+            }
+
+            // Initialize property maps
+            DESC = boost::get(&VertexInfo::desc, G);
+            ANC = boost::get(&VertexInfo::anc, G);
+            VertexIter vit, vend;
+            for(boost::tie(vit, vend) = boost::vertices(G); vit != vend; vit++) {
+                FORWARD[*vit][*vit] = ANC[*vit].addChild(NULL, *vit);
+                BACKWARD[*vit][*vit] = DESC[*vit].addChild(NULL, *vit);
             }
         }
 
         ~AIMN91_DataStructure() {
             // Deallocate arrays
             for(int i=0; i < num_vertices; i++) {
-                delete FORWARD[i];
-                delete BACKWARD[i];
-                delete D[i];
+                delete[] FORWARD[i];
+                delete[] BACKWARD[i];
+                delete[] D[i];
             }
-            delete FORWARD;
-            delete BACKWARD;
-            delete D;
+            delete[] FORWARD;
+            delete[] BACKWARD;
+            delete[] D;
         }
 
         // Get vertices from graph G - adding new vertices should not be allowed
@@ -82,11 +134,7 @@ class AIMN91_DataStructure {
 
         // length(x,y) operation simply returns the record in matrix D at position (x,y)
         int length(Vertex x, Vertex y) {
-            // return D[x][y];
-            return 0;
-        }
-        int length(int xid, int yid) {
-            return D[xid][yid];
+                return D[x][y];
         }
 
         // minimal_path(x,y) operation returns the shortest path from x to y 
@@ -94,17 +142,12 @@ class AIMN91_DataStructure {
 
         // add(i,j,w) - adds the edge i->j with the cost of w
         // Need to check if the edge already exists, given it doesn't update the datastructure
-        bool add(Vertex i, Vertex j, int w);
+        void add(Vertex i, Vertex j, int w) {
+            updateForward(i, i, j, DESC[j]);
+        }
 
         // decrease(i,j,delta)
         // Check if edge exists, if it does check if D(i,j) - delta > 1
         // update the datastructure
         bool decrease(Vertex i, Vertex j, int w);
 };
-
-/* template<typename array_t, typename elem_t> 
-void initialize_2dMatrix(array_t* arr, elem_t el, int n, int m) {
-    for (int i=0; i < n; i++) 
-        for(int j=0; j < m; j++)
-            arr[i][j] = el;
-} */

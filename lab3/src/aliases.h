@@ -4,13 +4,15 @@
 #include <limits.h>
 #include <cstddef>
 #include <stdexcept>
+#include <queue>
+#include <utility>
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
 
 #include "DLTree.h"
 
-#define INF INT_MAX
+#define INF UINT_MAX
 #define MAX_C 100 // Max cost of an edge
 #define MIN_C 1 // Min cost of an edge
 
@@ -34,7 +36,7 @@ struct EdgeInfo {
     int cost;
 };
 
-typedef boost::property_map<Graph, DLTree<Vertex> VertexInfo::*>::type DESCpmap;
-typedef boost::property_map<Graph, DLTree<Vertex> VertexInfo::*>::type ANCpmap;
+typedef boost::property_map<Graph, DLTree<Vertex> VertexInfo::*>::type Vertex_desc_pmap;
+typedef boost::property_map<Graph, DLTree<Vertex> VertexInfo::*>::type Vertex_anc_pmap;
 
 Vertex NULL_VERTEX = boost::graph_traits<Graph>::null_vertex();
