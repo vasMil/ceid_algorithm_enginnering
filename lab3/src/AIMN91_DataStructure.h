@@ -23,8 +23,8 @@ class AIMN91_DataStructure {
         Vertex_anc_pmap ANC;
 
         // merging updateForward and updateBackward
-        void updateForward(Vertex x, Vertex i, Vertex j, DLTree<Vertex>& T, Node<Vertex>* T_id_guide[]) {
-            Vertex y, w;
+        void updateForward_and_Backward(Vertex x, Vertex i, Vertex j, DLTree<Vertex>& T, Node<Vertex>* T_id_guide[]) {
+            Vertex y;
             std::queue<Vertex> Q;
             DLTree<Vertex> N;
             Node<Vertex>* N_id_guide[num_vertices];
@@ -46,24 +46,30 @@ class AIMN91_DataStructure {
                         FORWARD[x][y] = DESC[x].addChild(FORWARD[x][FORWARD[j][y]->parent->content], y);
                         N_id_guide[y] = N.addChild(N_id_guide[FORWARD[j][y]->parent->content], y);
                     }
-                }
-                D[x][y] = D[x][i] + 1 + D[j][y];
-                auto ch_it = T_id_guide[y]->children.begin(); auto ch_end = T_id_guide[y]->children.end();
-                for ( ; ch_it != ch_end; ch_it++) {
-                    Q.push((*ch_it)->content);
+                    if (x == i) {
+                        BACKWARD[y][i] = ANC[y].addChild(BACKWARD[y][j], i);
+                    }
+                    else {
+                        BACKWARD[y][x] = ANC[y].addChild(BACKWARD[y][BACKWARD[i][x]->parent->content], x);
+                    }
+                    
+                    D[x][y] = D[x][i] + 1 + D[j][y];
+                    auto ch_it = T_id_guide[y]->children.begin(); auto ch_end = T_id_guide[y]->children.end();
+                    for ( ; ch_it != ch_end; ch_it++) {
+                        Q.push((*ch_it)->content);
+                    }
                 }
             }
             if (!N.empty()) {
                 auto eit = ANC[i].edges().first; auto eend = ANC[i].edges().second;
                 for( ; eit != eend; eit++) {
                     if((*eit).first->content == x) {
-                        updateForward((*eit).second->content, i, j, N, N_id_guide);
+                        updateForward_and_Backward((*eit).second->content, i, j, N, N_id_guide);
                     }
                 }
             }
         }
         
-        void updateBackward(Vertex x, Vertex i, Vertex j, DLTree<Vertex>& T, Node<Vertex>* T_id_guide[]);
     public:        
         // Create an empty graph with num_vertices vertices
         AIMN91_DataStructure(int num_vertices) {
@@ -134,14 +140,21 @@ class AIMN91_DataStructure {
         }
 
         // minimal_path(x,y) operation returns the shortest path from x to y 
-        std::vector<Vertex> minimal_path(Vertex x, Vertex y);
+        /*std::vector<Vertex>*/ void minimal_path(Vertex x, Vertex y) {
+            Node<Vertex>* t = BACKWARD[y][x];
+            std::cout << "minimal_path(" << x << ", " << y << ") = ";
+            while (t->parent != NULL) {
+                std::cout << t->content << ", ";
+                t = t->parent;
+            }
+            std::cout << t->content << std::endl;
+        }
 
         // add(i,j,w) - adds the edge i->j with the cost of w
         // Need to check if the edge already exists, given it doesn't update the datastructure
         void add(Vertex i, Vertex j, int w) {
             boost::add_edge(i, j, G);
-            updateBackward(j, j, i, ANC[j], BACKWARD[j]);
-            updateForward(i, i, j, DESC[j], FORWARD[j]);
+            updateForward_and_Backward(i, i, j, DESC[j], FORWARD[j]);
         }
 
         // decrease(i,j,delta)
@@ -149,39 +162,3 @@ class AIMN91_DataStructure {
         // update the datastructure
         bool decrease(Vertex i, Vertex j, int w);
 };
-
-
-void AIMN91_DataStructure::updateBackward(Vertex x, Vertex i, Vertex j, DLTree<Vertex>& T, Node<Vertex>* T_id_guide[]) {
-    Vertex y, w;
-    std::queue<Vertex> Q;
-    DLTree<Vertex> N;
-    Node<Vertex>* N_id_guide[num_vertices];
-
-    Q.push(j);
-    while (!Q.empty()) {
-        y = Q.front();
-        Q.pop();
-        if(D[x][i] + 1 + D[j][y] < D[x][y]) {
-            if (y == j) {
-                BACKWARD[x][j] = ANC[x].addChild(BACKWARD[x][i], j);
-                N_id_guide[x] = N.addChild(NULL, x);
-            }
-            else {
-                BACKWARD[x][y] = ANC[x].addChild(BACKWARD[x][BACKWARD[j][y]->parent->content], y);
-                N_id_guide[y] = N.addChild(N_id_guide[BACKWARD[j][y]->parent->content], y);
-            }
-        }
-        auto ch_it = T_id_guide[y]->children.begin(); auto ch_end = T_id_guide[y]->children.end();
-        for ( ; ch_it != ch_end; ch_it++) {
-            Q.push((*ch_it)->content);
-        }
-    }
-    if (!N.empty()) {
-        auto eit = DESC[i].edges().first; auto eend = DESC[i].edges().second;
-        for( ; eit != eend; eit++) {
-            if((*eit).first->content == x) {
-                updateBackward((*eit).second->content, j, i, N, N_id_guide);
-            }
-        }
-    }
-}
