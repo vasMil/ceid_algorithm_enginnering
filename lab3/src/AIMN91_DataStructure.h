@@ -1,7 +1,7 @@
 #include "aliases.h"
 
 class AIMN91_DataStructure {
-    private:
+    public:
         int num_vertices;
         int num_edges;
         int upperCostBound;
@@ -23,7 +23,7 @@ class AIMN91_DataStructure {
         Vertex_anc_pmap ANC;
 
         // merging updateForward and updateBackward
-        void updateForward(Vertex x, Vertex i, Vertex j, DLTree<Vertex>& T, Node<Vertex>* T_id_guide[] = NULL) {
+        void updateForward(Vertex x, Vertex i, Vertex j, DLTree<Vertex>& T, Node<Vertex>* T_id_guide[]) {
             Vertex y, w;
             std::queue<Vertex> Q;
             DLTree<Vertex> N;
@@ -35,27 +35,22 @@ class AIMN91_DataStructure {
                 Q.pop();
                 if(D[x][i] + 1 + D[j][y] < D[x][y]) {
                     if (y == j) {
-                        auto temp = DESC[x].addChild(FORWARD[x][i], j);
+                        FORWARD[x][j] = DESC[x].addChild(FORWARD[x][i], j);
                         N_id_guide[j] = N.addChild(NULL, j);
-                        FORWARD[x][j] = temp;
                     }
                     else {
                         // The parent of y in the tree DESC(j) is a different Node from the Node in DESC(x).
                         // FORWARD[j][y] is a pointer to a Node containing y in tree DESC(j)
                         // thus FORWARD[j][y]->parent->content returns the id of the parent of y
                         // I may use that id to locate the Node in DESC(x) that has as content the same value (id)
-                        auto parent_of_y = FORWARD[x][FORWARD[j][y]->parent->content];
-                        auto temp = DESC[x].addChild(parent_of_y, y);
+                        FORWARD[x][y] = DESC[x].addChild(FORWARD[x][FORWARD[j][y]->parent->content], y);
                         N_id_guide[y] = N.addChild(N_id_guide[FORWARD[j][y]->parent->content], y);
-                        FORWARD[x][y] = temp;
                     }
                 }
                 D[x][y] = D[x][i] + 1 + D[j][y];
-                if(T_id_guide != NULL) {
-                    auto ch_it = T_id_guide[y]->children.begin(); auto ch_end = T_id_guide[y]->children.end();
-                    for ( ; ch_it != ch_end; ch_it++) {
-                        Q.push((*ch_it)->content);
-                    }
+                auto ch_it = T_id_guide[y]->children.begin(); auto ch_end = T_id_guide[y]->children.end();
+                for ( ; ch_it != ch_end; ch_it++) {
+                    Q.push((*ch_it)->content);
                 }
             }
             if (!N.empty()) {
@@ -67,7 +62,8 @@ class AIMN91_DataStructure {
                 }
             }
         }
-
+        
+        void updateBackward(Vertex x, Vertex i, Vertex j, DLTree<Vertex>& T, Node<Vertex>* T_id_guide[]);
     public:        
         // Create an empty graph with num_vertices vertices
         AIMN91_DataStructure(int num_vertices) {
@@ -101,7 +97,7 @@ class AIMN91_DataStructure {
                     }
                     FORWARD[i][j] = NULL;
                     BACKWARD[i][j] = NULL;
-                    D[i][j] = 0;
+                    D[i][j] = INF;
                 }
             }
 
@@ -133,7 +129,7 @@ class AIMN91_DataStructure {
         }
 
         // length(x,y) operation simply returns the record in matrix D at position (x,y)
-        int length(Vertex x, Vertex y) {
+        unsigned int length(Vertex x, Vertex y) {
                 return D[x][y];
         }
 
@@ -143,7 +139,9 @@ class AIMN91_DataStructure {
         // add(i,j,w) - adds the edge i->j with the cost of w
         // Need to check if the edge already exists, given it doesn't update the datastructure
         void add(Vertex i, Vertex j, int w) {
-            updateForward(i, i, j, DESC[j]);
+            boost::add_edge(i, j, G);
+            updateBackward(j, j, i, ANC[j], BACKWARD[j]);
+            updateForward(i, i, j, DESC[j], FORWARD[j]);
         }
 
         // decrease(i,j,delta)
@@ -151,3 +149,39 @@ class AIMN91_DataStructure {
         // update the datastructure
         bool decrease(Vertex i, Vertex j, int w);
 };
+
+
+void AIMN91_DataStructure::updateBackward(Vertex x, Vertex i, Vertex j, DLTree<Vertex>& T, Node<Vertex>* T_id_guide[]) {
+    Vertex y, w;
+    std::queue<Vertex> Q;
+    DLTree<Vertex> N;
+    Node<Vertex>* N_id_guide[num_vertices];
+
+    Q.push(j);
+    while (!Q.empty()) {
+        y = Q.front();
+        Q.pop();
+        if(D[x][i] + 1 + D[j][y] < D[x][y]) {
+            if (y == j) {
+                BACKWARD[x][j] = ANC[x].addChild(BACKWARD[x][i], j);
+                N_id_guide[x] = N.addChild(NULL, x);
+            }
+            else {
+                BACKWARD[x][y] = ANC[x].addChild(BACKWARD[x][BACKWARD[j][y]->parent->content], y);
+                N_id_guide[y] = N.addChild(N_id_guide[BACKWARD[j][y]->parent->content], y);
+            }
+        }
+        auto ch_it = T_id_guide[y]->children.begin(); auto ch_end = T_id_guide[y]->children.end();
+        for ( ; ch_it != ch_end; ch_it++) {
+            Q.push((*ch_it)->content);
+        }
+    }
+    if (!N.empty()) {
+        auto eit = DESC[i].edges().first; auto eend = DESC[i].edges().second;
+        for( ; eit != eend; eit++) {
+            if((*eit).first->content == x) {
+                updateBackward((*eit).second->content, j, i, N, N_id_guide);
+            }
+        }
+    }
+}

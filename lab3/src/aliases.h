@@ -33,7 +33,7 @@ struct VertexInfo {
 };
 
 struct EdgeInfo {
-    int cost;
+    unsigned int cost;
 };
 
 typedef boost::property_map<Graph, DLTree<Vertex> VertexInfo::*>::type Vertex_desc_pmap;
