@@ -154,7 +154,27 @@ class AIMN91_DataStructure {
         // add(i,j,w) - adds the edge i->j with the cost of w
         // Need to check if the edge already exists, given it doesn't update the datastructure
         void add(Vertex i, Vertex j, unsigned int w) {
-            boost::add_edge(i, j, G);
+            if(w > upperCostBound || w < MIN_C) {
+                std::cout << "Add operation ignored!" << std::endl;
+                std::cout << "w must be >= " << MIN_C << " and <= " << upperCostBound << std::endl;
+                return;
+            }
+            // Check if edge already exists
+            auto e = boost::edge(i, j, G);
+            auto edge_cost_pmap = boost::get(&EdgeInfo::cost, G);
+            if(e.second) {
+                // Edge already exists
+                std::cout << "Edge already exists!" << std::endl;
+                if(edge_cost_pmap[e.first] > w) {
+                    std::cout << "Looks like the new edge you are trying to add has a lower cost than the current one."
+                     " Consider using the descrease(x,y,delta) operation." << std::endl;
+                }
+                return;
+            }
+
+            // Insert the edge into G
+            e = boost::add_edge(i,j, G);
+            boost::put(edge_cost_pmap, e.first, w);
             this->num_edges++;
             updateForward_and_Backward(i, i, j, w, DESC[j], FORWARD[j]);
         }
@@ -162,5 +182,25 @@ class AIMN91_DataStructure {
         // decrease(i,j,delta)
         // Check if edge exists, if it does check if D(i,j) - delta > 1
         // update the datastructure
-        bool decrease(Vertex i, Vertex j, int w);
+        void decrease(Vertex i, Vertex j, unsigned int delta) {
+            // Check if edge already exists
+            auto e = boost::edge(i, j, G);
+            auto edge_cost_pmap = boost::get(&EdgeInfo::cost, G);
+            if(!e.second) {
+                std::cout << "No such edge, please add it using the add(x,y,w) operation!" << std::endl;
+                return;
+            }
+
+            int decr_cost = edge_cost_pmap[e.first] - delta;
+            if(decr_cost < MIN_C) {
+                std::cout << "Decrease operation is ignored!" << std::endl;
+                std::cout << "Decreasing the edge cost by " << delta << "will result to an edge cost of " <<
+                    edge_cost_pmap[e.first] - delta << "which is less than min acceptable cost: " << MIN_C << std::endl;
+                return;
+            }
+
+            boost::remove_edge(i, j, G);
+            this->num_edges--;
+            this->add(i,j,decr_cost);
+        }
 };

@@ -35,16 +35,17 @@ int main() {
     AIMN91_DataStructure AIMN91(num_v, max_cost);
 
     /* PROMPT USER TO ADD EDGES - REQUEST FOR MINIMAL PATH - LENGTH */
-    auto const command_regex = std::regex("(add|minimal_path|length)\\(([0-9]+),([0-9]+)(?:,([0-9]+))?\\)|exit");
+    auto const command_regex = std::regex("(add|decrease|minimal_path|length)\\(([0-9]+),([0-9]+)(?:,([0-9]+))?\\)|exit");
     std::string command;
 
-    std::cout << "+-----------------------------------------------------------+" << std::endl;
-    std::cout << "| Valid operations:                                         |" << std::endl;
-    std::cout << "| add(x,y,w)        | add the edge x->y to your graph       |" << std::endl;
-    std::cout << "| minimal_path(x,y) | return the minimal path from x to y   |" << std::endl;
-    std::cout << "| length(x,y)       | return the length of the minimal_path |" << std::endl;
-    std::cout << "| exit              | to exit the program                   |" << std::endl;
-    std::cout << "+-----------------------------------------------------------+" << std::endl;
+    std::cout << "+-------------------------------------------------------------+" << std::endl;
+    std::cout << "| Valid operations:                                           |" << std::endl;
+    std::cout << "| add(x,y,w)          | add the edge x->y to your graph       |" << std::endl;
+    std::cout << "| decrease(x,y,delta) | decrease the cost of x->y by delta    |" << std::endl;
+    std::cout << "| minimal_path(x,y)   | return the minimal path from x to y   |" << std::endl;
+    std::cout << "| length(x,y)         | return the length of the minimal_path |" << std::endl;
+    std::cout << "| exit                | to exit the program                   |" << std::endl;
+    std::cout << "+-------------------------------------------------------------+" << std::endl;
 
     while(true) {
         std::cin.clear();
@@ -60,9 +61,12 @@ int main() {
             return 0;
         }
 
+        // TODO: Add checks for the arguments
         if(regex_match[1] == "add") {
             AIMN91.add(std::stoi(regex_match[2]), std::stoi(regex_match[3]), std::stoi(regex_match[4]));
-            std::cout << std::endl;
+        }
+        else if (regex_match[1] == "decrease") {
+            AIMN91.decrease(std::stoi(regex_match[2]), std::stoi(regex_match[3]), std::stoi(regex_match[4]));
         }
         else if (regex_match[1] == "minimal_path") {
             AIMN91.minimal_path(std::stoi(regex_match[2]), std::stoi(regex_match[3]));
