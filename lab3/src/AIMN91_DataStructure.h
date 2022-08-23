@@ -1,7 +1,8 @@
+#pragma once
 #include "aliases.h"
 
 class AIMN91_DataStructure {
-    public:
+    private:
         int num_vertices;
         int num_edges;
         int upperCostBound;
@@ -23,7 +24,7 @@ class AIMN91_DataStructure {
         Vertex_anc_pmap ANC;
 
         // merging updateForward and updateBackward
-        void updateForward_and_Backward(Vertex x, Vertex i, Vertex j, DLTree<Vertex>& T, Node<Vertex>* T_id_guide[]) {
+        void updateForward_and_Backward(Vertex x, Vertex i, Vertex j, unsigned int w, DLTree<Vertex>& T, Node<Vertex>* T_id_guide[]) {
             Vertex y;
             std::queue<Vertex> Q;
             DLTree<Vertex> N;
@@ -33,7 +34,7 @@ class AIMN91_DataStructure {
             while (!Q.empty()) {
                 y = Q.front();
                 Q.pop();
-                if(D[x][i] + 1 + D[j][y] < D[x][y]) {
+                if(D[x][i] + w + D[j][y] < D[x][y]) {
                     if (y == j) {
                         FORWARD[x][j] = DESC[x].addChild(FORWARD[x][i], j);
                         N_id_guide[j] = N.addChild(NULL, j);
@@ -53,7 +54,7 @@ class AIMN91_DataStructure {
                         BACKWARD[y][x] = ANC[y].addChild(BACKWARD[y][BACKWARD[i][x]->parent->content], x);
                     }
                     
-                    D[x][y] = D[x][i] + 1 + D[j][y];
+                    D[x][y] = D[x][i] + w + D[j][y];
                     auto ch_it = T_id_guide[y]->children.begin(); auto ch_end = T_id_guide[y]->children.end();
                     for ( ; ch_it != ch_end; ch_it++) {
                         Q.push((*ch_it)->content);
@@ -64,7 +65,7 @@ class AIMN91_DataStructure {
                 auto eit = ANC[i].edges().first; auto eend = ANC[i].edges().second;
                 for( ; eit != eend; eit++) {
                     if((*eit).first->content == x) {
-                        updateForward_and_Backward((*eit).second->content, i, j, N, N_id_guide);
+                        updateForward_and_Backward((*eit).second->content, i, j, w, N, N_id_guide);
                     }
                 }
             }
@@ -72,7 +73,7 @@ class AIMN91_DataStructure {
         
     public:        
         // Create an empty graph with num_vertices vertices
-        AIMN91_DataStructure(int num_vertices) {
+        AIMN91_DataStructure(int num_vertices, int max_cost = MIN_C) {
             // Make sure that matrix D has cost values < INF, so INF implies there is no path
             if((num_vertices-1) > INF / MAX_C) {
                 throw std::invalid_argument("There might be a path that has a cost > constant INF");
@@ -80,7 +81,7 @@ class AIMN91_DataStructure {
 
             this->num_vertices = num_vertices;
             this->num_edges = 0;
-            this->upperCostBound = MAX_C;
+            this->upperCostBound = max_cost <= MIN_C ? MAX_C : max_cost;
 
             // Add vertices to the graph
             for(int i=0; i < num_vertices; i++) {
@@ -152,9 +153,10 @@ class AIMN91_DataStructure {
 
         // add(i,j,w) - adds the edge i->j with the cost of w
         // Need to check if the edge already exists, given it doesn't update the datastructure
-        void add(Vertex i, Vertex j, int w) {
+        void add(Vertex i, Vertex j, unsigned int w) {
             boost::add_edge(i, j, G);
-            updateForward_and_Backward(i, i, j, DESC[j], FORWARD[j]);
+            this->num_edges++;
+            updateForward_and_Backward(i, i, j, w, DESC[j], FORWARD[j]);
         }
 
         // decrease(i,j,delta)

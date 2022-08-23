@@ -9,7 +9,6 @@ struct Node {
     Node() {
         this->content = -1;
         this->parent = NULL;
-        this->children = std::vector<Node<NodeContent_t>* >();
     }
 
     Node(NodeContent_t content) {
