@@ -1,86 +1,28 @@
 #include "aliases.h"
 #include "AIMN91_DataStructure.h"
-#include "tests.h"
-#include <regex>
+#include "utils.h"
+
 
 int main() {
-    unsigned int num_v;
-    unsigned int max_cost;
+    unsigned int num_vertices = 500;
+    unsigned int num_edges = 2000;
 
-    /* HANDLE USER INPUT */
-    // https://stackoverflow.com/questions/19696442/how-to-catch-invalid-input-in-c
-    std::cout << "Specify |V|: ";
-    std::cin >> num_v;
-    while (std::cin.fail()) {
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        std::cout << "Bad entry! Specify |V|: ";
-        std::cin >> num_v;
+    std::cout << "Generating random edges..." << std::endl;
+    auto random_edges = createRandomEdges(num_vertices, num_edges);
+    std::cout << "Edges are ready..." << std::endl;
+
+    std::cout << "Inserting the random edges into the AIMN91 data structure..." << std::endl;
+    // Insert them in the graph
+    AIMN91_DataStructure AIMN91(num_vertices);
+    for(auto it = random_edges.begin(); it != random_edges.end(); ++it) {
+        // std::cout << std::get<0>(*it) << "->" << std::get<1>(*it) << "[label=" << std::get<2>(*it) << "]" << std::endl;
+        AIMN91.add(std::get<0>(*it), std::get<1>(*it), std::get<2>(*it));
     }
-
-    std::cin.clear();
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    
-    std::cout << "Specify the maximum cost an edge may have: ";
-    std::cin >> max_cost;
-    while (std::cin.fail()) {
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        std::cout << "Bad entry! Specify the maximum cost an edge may have: ";
-        std::cin >> max_cost;
-    }
-    std::cout << std::endl;
-
-    /* SETUP AIMN91_DataStructure */
-    AIMN91_DataStructure AIMN91(num_v, max_cost);
-
-    /* PROMPT USER TO ADD EDGES - REQUEST FOR MINIMAL PATH - LENGTH */
-    auto const command_regex = std::regex("(add|decrease|minimal_path|length)\\(([0-9]+),([0-9]+)(?:,([0-9]+))?\\)|exit");
-    std::string command;
-
-    std::cout << "+-------------------------------------------------------------+" << std::endl;
-    std::cout << "| Valid operations:                                           |" << std::endl;
-    std::cout << "| add(x,y,w)          | add the edge x->y to your graph       |" << std::endl;
-    std::cout << "| decrease(x,y,delta) | decrease the cost of x->y by delta    |" << std::endl;
-    std::cout << "| minimal_path(x,y)   | return the minimal path from x to y   |" << std::endl;
-    std::cout << "| length(x,y)         | return the length of the minimal_path |" << std::endl;
-    std::cout << "| exit                | to exit the program                   |" << std::endl;
-    std::cout << "+-------------------------------------------------------------+" << std::endl;
-
-    while(true) {
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        std::cout << std::endl;
-
-        std::cout << "Enter your command: ";
-        std::cin >> command;
-        std::smatch regex_match;
-        std::regex_match(command, regex_match, command_regex);
-
-        if (regex_match[0] == "exit") {
-            return 0;
-        }
-
-        // TODO: Add checks for the arguments
-        if(regex_match[1] == "add") {
-            AIMN91.add(std::stoi(regex_match[2]), std::stoi(regex_match[3]), std::stoi(regex_match[4]));
-        }
-        else if (regex_match[1] == "decrease") {
-            AIMN91.decrease(std::stoi(regex_match[2]), std::stoi(regex_match[3]), std::stoi(regex_match[4]));
-        }
-        else if (regex_match[1] == "minimal_path") {
-            AIMN91.minimal_path(std::stoi(regex_match[2]), std::stoi(regex_match[3]));
-        }
-        else if (regex_match[1] == "length") {
-            std::cout << "length(" << regex_match[2] << "," << regex_match[3] << ") = " << 
-                AIMN91.length(std::stoi(regex_match[2]), std::stoi(regex_match[3])) << std::endl;
-        }
-        else {
-            std::cout << "Invalid operation - please try again!" << std::endl;
-        }
-    }
+    std::cout << "AIMN91 is ready..." << std::endl;
 
 
+    cli(AIMN91);
     /* Testing */
     // test_directed_graph_no_weight();
+    // cli();
 }

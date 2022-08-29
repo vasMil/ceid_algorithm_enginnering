@@ -1,6 +1,7 @@
 #pragma once
 #include "aliases.h"
 
+
 class AIMN91_DataStructure {
     private:
         int num_vertices;
@@ -24,11 +25,17 @@ class AIMN91_DataStructure {
         Vertex_anc_pmap ANC;
 
         // merging updateForward and updateBackward
-        void updateForward_and_Backward(Vertex x, Vertex i, Vertex j, unsigned int w, DLTree<Vertex>& T, Node<Vertex>* T_id_guide[]) {
+        void updateForward_and_Backward(
+            Vertex x, Vertex i, Vertex j, unsigned int w, 
+            Node<Vertex>* T_id_guide[])
+        {
             Vertex y;
             std::queue<Vertex> Q;
             DLTree<Vertex> N;
             Node<Vertex>* N_id_guide[num_vertices];
+            for (int i = 0; i < num_vertices; i++) {
+                N_id_guide[i] = NULL;
+            }
 
             Q.push(j);
             while (!Q.empty()) {
@@ -36,10 +43,18 @@ class AIMN91_DataStructure {
                 Q.pop();
                 if(D[x][i] + w + D[j][y] < D[x][y]) {
                     if (y == j) {
+                        if (FORWARD[x][j] != NULL){
+                            DESC[x].removeChild(FORWARD[x][j]);
+                            N.removeChild(N_id_guide[j]);
+                        }
                         FORWARD[x][j] = DESC[x].addChild(FORWARD[x][i], j);
-                        N_id_guide[j] = N.addChild(NULL, j);
+                        N_id_guide[j] = N.setRoot(j);
                     }
                     else {
+                        if (FORWARD[x][y] != NULL) {
+                            DESC[x].removeChild(FORWARD[x][y]);
+                            N.removeChild(N_id_guide[y]);
+                        }
                         // The parent of y in the tree DESC(j) is a different Node from the Node in DESC(x).
                         // FORWARD[j][y] is a pointer to a Node containing y in tree DESC(j)
                         // thus FORWARD[j][y]->parent->content returns the id of the parent of y
@@ -48,9 +63,15 @@ class AIMN91_DataStructure {
                         N_id_guide[y] = N.addChild(N_id_guide[FORWARD[j][y]->parent->content], y);
                     }
                     if (x == i) {
+                        if (BACKWARD[y][i] != NULL){
+                            ANC[y].removeChild(BACKWARD[y][i]);
+                        }
                         BACKWARD[y][i] = ANC[y].addChild(BACKWARD[y][j], i);
                     }
                     else {
+                        if (BACKWARD[y][x] != NULL) {
+                            ANC[y].removeChild(BACKWARD[y][x]);
+                        }
                         BACKWARD[y][x] = ANC[y].addChild(BACKWARD[y][BACKWARD[i][x]->parent->content], x);
                     }
                     
@@ -65,7 +86,7 @@ class AIMN91_DataStructure {
                 auto eit = ANC[i].edges().first; auto eend = ANC[i].edges().second;
                 for( ; eit != eend; eit++) {
                     if((*eit).first->content == x) {
-                        updateForward_and_Backward((*eit).second->content, i, j, w, N, N_id_guide);
+                        updateForward_and_Backward((*eit).second->content, i, j, w, N_id_guide);
                     }
                 }
             }
@@ -102,9 +123,9 @@ class AIMN91_DataStructure {
                         D[i][j] = 0;
                         continue;
                     }
+                    D[i][j] = INF;
                     FORWARD[i][j] = NULL;
                     BACKWARD[i][j] = NULL;
-                    D[i][j] = INF;
                 }
             }
 
@@ -113,8 +134,8 @@ class AIMN91_DataStructure {
             ANC = boost::get(&VertexInfo::anc, G);
             VertexIter vit, vend;
             for(boost::tie(vit, vend) = boost::vertices(G); vit != vend; vit++) {
-                FORWARD[*vit][*vit] = ANC[*vit].addChild(NULL, *vit);
-                BACKWARD[*vit][*vit] = DESC[*vit].addChild(NULL, *vit);
+                FORWARD[*vit][*vit] = DESC[*vit].setRoot(*vit);
+                BACKWARD[*vit][*vit] = ANC[*vit].setRoot(*vit);
             }
         }
 
@@ -141,14 +162,19 @@ class AIMN91_DataStructure {
         }
 
         // minimal_path(x,y) operation returns the shortest path from x to y 
-        /*std::vector<Vertex>*/ void minimal_path(Vertex x, Vertex y) {
+        std::vector<Vertex> minimal_path(Vertex x, Vertex y) {
             Node<Vertex>* t = BACKWARD[y][x];
-            std::cout << "minimal_path(" << x << ", " << y << ") = ";
+            std::vector<Vertex> path;
+            if (t == NULL) {
+                std::cout << "There is no path from " << x << " to " << y << "!" << std::endl;
+                return path;
+            }
             while (t->parent != NULL) {
-                std::cout << t->content << ", ";
+                path.push_back(t->content);
                 t = t->parent;
             }
-            std::cout << t->content << std::endl;
+            path.push_back(t->content);
+            return path;
         }
 
         // add(i,j,w) - adds the edge i->j with the cost of w
@@ -176,7 +202,7 @@ class AIMN91_DataStructure {
             e = boost::add_edge(i,j, G);
             boost::put(edge_cost_pmap, e.first, w);
             this->num_edges++;
-            updateForward_and_Backward(i, i, j, w, DESC[j], FORWARD[j]);
+            updateForward_and_Backward(i, i, j, w, FORWARD[j]);
         }
 
         // decrease(i,j,delta)
