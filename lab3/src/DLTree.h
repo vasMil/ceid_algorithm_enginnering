@@ -23,12 +23,6 @@ struct Node {
         this->content = content;
         children = std::vector<Node<NodeContent_t>* >();
     }
-
-    ~Node() {
-        this->parent = NULL;
-        this->content = -1;
-        this->children.clear();
-    }
 };
 
 

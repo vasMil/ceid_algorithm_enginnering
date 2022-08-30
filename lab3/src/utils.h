@@ -1,34 +1,16 @@
 #include "aliases.h"
+#include "visualization_utils.h"
 #include "AIMN91_DataStructure.h"
-#include <regex>
-
-std::vector<std::tuple<Vertex, Vertex, int> > createRandomEdges(
-    unsigned int num_vertices, 
-    unsigned int num_edges) {
-
-    std::vector<std::tuple<Vertex, Vertex, int> > random_edges;
-    std::set<std::pair<Vertex, Vertex> > random_vpairs;
-    Vertex in, out;
-
-    boost::random::mt19937 rng;
-    boost::random::uniform_int_distribution<> random_Vertex(0,num_vertices-1);
-    boost::random::uniform_int_distribution<> random_cost(1,MAX_C);
-
-    // Create a set of random pairs of vertices
-    while(random_vpairs.size() != num_edges) {
-        in = random_Vertex(rng);
-        out = random_Vertex(rng);
-        while(in == out) out = random_Vertex(rng);
-        random_vpairs.insert(std::make_pair(in, out));
-    }
-    for(auto it = random_vpairs.begin(); it != random_vpairs.end(); ++it)
-        random_edges.push_back(std::make_tuple(it->first, it->second, random_cost(rng)));
-    return random_edges;
-}
 
 int cli(AIMN91_DataStructure& AIMN91) {
+    #if VISUALIZE
+        // save_graph_state(AIMN91);
+        renderGraphFile();
+    #endif
     /* PROMPT USER TO ADD EDGES - REQUEST FOR MINIMAL PATH - LENGTH */
-    auto const command_regex = std::regex("(add|decrease|minimal_path|length)\\(([0-9]+),([0-9]+)(?:,([0-9]+))?\\)|exit");
+    auto const command_regex = std::regex(
+        "(add|decrease|minimal_path|length)\\(([0-9]+),([0-9]+)(?:,([0-9]+))?\\)|exit"
+        );
     std::string command;
 
     std::cout << "+-------------------------------------------------------------+" << std::endl;
@@ -55,9 +37,19 @@ int cli(AIMN91_DataStructure& AIMN91) {
         // TODO: Add checks for the arguments
         if(regex_match[1] == "add") {
             AIMN91.add(std::stoi(regex_match[2]), std::stoi(regex_match[3]), std::stoi(regex_match[4]));
+            #if VISUALIZE
+                resetEdgeColors(AIMN91);
+                save_graph_state(AIMN91);
+                renderGraphFile();
+            #endif
         }
         else if (regex_match[1] == "decrease") {
             AIMN91.decrease(std::stoi(regex_match[2]), std::stoi(regex_match[3]), std::stoi(regex_match[4]));
+            #if VISUALIZE
+                resetEdgeColors(AIMN91);
+                save_graph_state(AIMN91);
+                renderGraphFile();
+            #endif
         }
         else if (regex_match[1] == "minimal_path") {
             auto path = AIMN91.minimal_path(std::stoi(regex_match[2]), std::stoi(regex_match[3]));
@@ -70,6 +62,21 @@ int cli(AIMN91_DataStructure& AIMN91) {
                 std::cout << *it << ", ";
             }
             std::cout << *std::prev(path.end()) << std::endl;
+
+            #if VISUALIZE
+                auto G = AIMN91.get_graph();
+                Edge_color_pmap color = boost::get(&EdgeInfo::color, *G);
+                resetEdgeColors(AIMN91);
+                // Find the edge in the G list and set its color to red
+                Edge e;
+                auto vit = path.begin(); auto vend = std::prev(path.end());
+                for ( ; vit != vend; vit++) {
+                    e = boost::edge(*vit, *std::next(vit), *G).first;
+                    color[e] = "red";
+                }
+                save_graph_state(AIMN91);
+                renderGraphFile();
+            #endif
         }
         else if (regex_match[1] == "length") {
             std::cout << "length(" << regex_match[2] << "," << regex_match[3] << ") = " << 
@@ -158,4 +165,3 @@ void test_directed_graph_no_weight() {
 
     AIMN91.minimal_path(0,6);
 }
-

@@ -1,7 +1,6 @@
 #pragma once
 #include "aliases.h"
 
-
 class AIMN91_DataStructure {
     private:
         int num_vertices;
@@ -92,7 +91,7 @@ class AIMN91_DataStructure {
             }
         }
         
-    public:        
+    public: 
         // Create an empty graph with num_vertices vertices
         AIMN91_DataStructure(int num_vertices, int max_cost = MIN_C) {
             // Make sure that matrix D has cost values < INF, so INF implies there is no path
@@ -156,8 +155,16 @@ class AIMN91_DataStructure {
             return boost::vertex(vertex_id, this->G);
         }
 
+        // Get G (used when VISUALIZATION == true)
+        Graph* get_graph() {
+            return &G;
+        }
+
         // length(x,y) operation simply returns the record in matrix D at position (x,y)
         unsigned int length(Vertex x, Vertex y) {
+                if (x >= num_vertices || y >= num_vertices || x < 0 || y < 0 ) {
+                    return -1;
+                }
                 return D[x][y];
         }
 
@@ -165,21 +172,28 @@ class AIMN91_DataStructure {
         std::vector<Vertex> minimal_path(Vertex x, Vertex y) {
             Node<Vertex>* t = BACKWARD[y][x];
             std::vector<Vertex> path;
+            if (x >= num_vertices || y >= num_vertices || x < 0 || y < 0 ) {
+                return path;
+            }
+
             if (t == NULL) {
                 std::cout << "There is no path from " << x << " to " << y << "!" << std::endl;
                 return path;
             }
+
             while (t->parent != NULL) {
                 path.push_back(t->content);
                 t = t->parent;
             }
             path.push_back(t->content);
+            
             return path;
         }
 
         // add(i,j,w) - adds the edge i->j with the cost of w
         // Need to check if the edge already exists, given it doesn't update the datastructure
         void add(Vertex i, Vertex j, unsigned int w) {
+            
             if(w > upperCostBound || w < MIN_C) {
                 std::cout << "Add operation ignored!" << std::endl;
                 std::cout << "w must be >= " << MIN_C << " and <= " << upperCostBound << std::endl;
@@ -229,4 +243,5 @@ class AIMN91_DataStructure {
             this->num_edges--;
             this->add(i,j,decr_cost);
         }
+
 };

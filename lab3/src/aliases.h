@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <queue>
 #include <utility>
+#include <regex>
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
@@ -18,6 +19,13 @@
 #define MAX_C 100 // Max cost of an edge
 #define MIN_C 1 // Min cost of an edge
 
+#define VISUALIZE true
+#define GRAPHVIZ_FILE "out/AIMN91_graph.dot"
+
+#if VISUALIZE
+    #include <boost/graph/graphviz.hpp>
+    #include <cstdlib>
+#endif
 
 /**************** GRAPH ****************/
 struct VertexInfo;
@@ -28,6 +36,7 @@ typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
 typedef boost::graph_traits<Graph>::edge_descriptor Edge;
 
 typedef boost::graph_traits<Graph>::vertex_iterator VertexIter;
+typedef boost::graph_traits<Graph>::edge_iterator EdgeIter;
 
 struct VertexInfo {
     DLTree<Vertex> desc;
@@ -36,9 +45,17 @@ struct VertexInfo {
 
 struct EdgeInfo {
     unsigned int cost;
+
+    #if VISUALIZE
+        std::string color = "black";
+    #endif
 };
 
 typedef boost::property_map<Graph, DLTree<Vertex> VertexInfo::*>::type Vertex_desc_pmap;
 typedef boost::property_map<Graph, DLTree<Vertex> VertexInfo::*>::type Vertex_anc_pmap;
+
+#if VISUALIZE
+    typedef boost::property_map<Graph, std::string EdgeInfo::*>::type Edge_color_pmap;
+#endif
 
 Vertex NULL_VERTEX = boost::graph_traits<Graph>::null_vertex();
