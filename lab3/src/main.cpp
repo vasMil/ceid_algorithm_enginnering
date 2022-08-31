@@ -19,8 +19,7 @@ int main() {
     }
     std::cout << "AIMN91 is ready..." << std::endl;
     
-    // cli(AIMN91);
     /* Testing */
     // test_directed_graph_no_weight();
-    cli(AIMN91);
+    cli();
 }

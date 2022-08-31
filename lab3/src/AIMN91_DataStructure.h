@@ -1,6 +1,7 @@
 #pragma once
 #include "aliases.h"
 
+
 class AIMN91_DataStructure {
     private:
         int num_vertices;
@@ -161,23 +162,44 @@ class AIMN91_DataStructure {
         }
 
         // length(x,y) operation simply returns the record in matrix D at position (x,y)
-        unsigned int length(Vertex x, Vertex y) {
+        unsigned int safe_length(Vertex x, Vertex y) {
                 if (x >= num_vertices || y >= num_vertices || x < 0 || y < 0 ) {
                     return -1;
                 }
                 return D[x][y];
         }
 
+        unsigned int length(Vertex x, Vertex y) {
+            return D[x][y];
+        }
+
         // minimal_path(x,y) operation returns the shortest path from x to y 
-        std::vector<Vertex> minimal_path(Vertex x, Vertex y) {
-            Node<Vertex>* t = BACKWARD[y][x];
+        std::vector<Vertex> safe_minimal_path(Vertex x, Vertex y) {
             std::vector<Vertex> path;
             if (x >= num_vertices || y >= num_vertices || x < 0 || y < 0 ) {
+                std::cout << "Invalid vertices" << std::endl;
                 return path;
             }
 
+            Node<Vertex>* t = BACKWARD[y][x];
+
             if (t == NULL) {
-                std::cout << "There is no path from " << x << " to " << y << "!" << std::endl;
+                return path;
+            }
+
+            while (t->parent != NULL) {
+                path.push_back(t->content);
+                t = t->parent;
+            }
+            path.push_back(t->content);
+            
+            return path;
+        }
+
+        std::vector<Vertex> minimal_path(Vertex x, Vertex y) {
+            Node<Vertex>* t = BACKWARD[y][x];
+            std::vector<Vertex> path;
+            if (t == NULL) {
                 return path;
             }
 
@@ -192,13 +214,20 @@ class AIMN91_DataStructure {
 
         // add(i,j,w) - adds the edge i->j with the cost of w
         // Need to check if the edge already exists, given it doesn't update the datastructure
-        void add(Vertex i, Vertex j, unsigned int w) {
-            
+        void safe_add(Vertex i, Vertex j, unsigned int w) {
+            // Check if Vertex i and j are valid
+            if (i >= num_vertices || j >= num_vertices || i < 0 || j < 0 ) {
+                std::cout << "Invalid vertices" << std::endl;
+                return;
+            }
+
+            // Check if w has a valid value            
             if(w > upperCostBound || w < MIN_C) {
                 std::cout << "Add operation ignored!" << std::endl;
                 std::cout << "w must be >= " << MIN_C << " and <= " << upperCostBound << std::endl;
                 return;
             }
+
             // Check if edge already exists
             auto e = boost::edge(i, j, G);
             auto edge_cost_pmap = boost::get(&EdgeInfo::cost, G);
@@ -213,8 +242,12 @@ class AIMN91_DataStructure {
             }
 
             // Insert the edge into G
-            e = boost::add_edge(i,j, G);
-            boost::put(edge_cost_pmap, e.first, w);
+            this->add(i, j, w);
+        }
+
+        void add(Vertex i, Vertex j, unsigned int w) {
+            auto e = boost::add_edge(i,j, G);
+            boost::put(boost::get(&EdgeInfo::cost, G), e.first, w);
             this->num_edges++;
             updateForward_and_Backward(i, i, j, w, FORWARD[j]);
         }
@@ -222,7 +255,12 @@ class AIMN91_DataStructure {
         // decrease(i,j,delta)
         // Check if edge exists, if it does check if D(i,j) - delta > 1
         // update the datastructure
-        void decrease(Vertex i, Vertex j, unsigned int delta) {
+        void safe_decrease(Vertex i, Vertex j, unsigned int delta) {
+            // Check if Vertex i and j are valid
+            if (i >= num_vertices || j >= num_vertices || i < 0 || j < 0 ) {
+                std::cout << "Invalid vertices" << std::endl;
+                return;
+            }
             // Check if edge already exists
             auto e = boost::edge(i, j, G);
             auto edge_cost_pmap = boost::get(&EdgeInfo::cost, G);
@@ -231,6 +269,7 @@ class AIMN91_DataStructure {
                 return;
             }
 
+            // Check if decreased cost is valid
             int decr_cost = edge_cost_pmap[e.first] - delta;
             if(decr_cost < MIN_C) {
                 std::cout << "Decrease operation is ignored!" << std::endl;
@@ -239,9 +278,18 @@ class AIMN91_DataStructure {
                 return;
             }
 
-            boost::remove_edge(i, j, G);
-            this->num_edges--;
-            this->add(i,j,decr_cost);
+            this->decrease(i, j, delta);
         }
 
+        void decrease(Vertex i, Vertex j, unsigned int delta) {
+            // Get the edge
+            auto e = boost::edge(i, j, G);
+            auto edge_cost_pmap = boost::get(&EdgeInfo::cost, G);
+            int decr_cost = edge_cost_pmap[e.first] - delta;
+            // Remove the old edge
+            boost::remove_edge(i, j, G);
+            this->num_edges--;
+            // Add the new edge
+            this->add(i,j,decr_cost);
+        }
 };

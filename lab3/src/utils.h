@@ -66,7 +66,7 @@ int cli(AIMN91_DataStructure& AIMN91) {
                     goto game_loop;
                 }
             }
-            AIMN91.add(std::stoi(arg[0]), std::stoi(arg[1]), std::stoi(arg[2]));
+            AIMN91.safe_add(std::stoi(arg[0]), std::stoi(arg[1]), std::stoi(arg[2]));
             #if VISUALIZE
                 resetEdgeColors(AIMN91);
                 save_graph_state(AIMN91);
@@ -80,7 +80,7 @@ int cli(AIMN91_DataStructure& AIMN91) {
                     goto game_loop;
                 }
             }
-            AIMN91.decrease(std::stoi(regex_match[2]), std::stoi(regex_match[3]), std::stoi(regex_match[4]));
+            AIMN91.safe_decrease(std::stoi(regex_match[2]), std::stoi(regex_match[3]), std::stoi(regex_match[4]));
             #if VISUALIZE
                 resetEdgeColors(AIMN91);
                 save_graph_state(AIMN91);
@@ -94,9 +94,10 @@ int cli(AIMN91_DataStructure& AIMN91) {
                     goto game_loop;
                 }
             }
-            auto path = AIMN91.minimal_path(std::stoi(regex_match[2]), std::stoi(regex_match[3]));
+            auto path = AIMN91.safe_minimal_path(std::stoi(regex_match[2]), std::stoi(regex_match[3]));
             if (path.size() == 0) {
                 std::cout << "There is no path from " << regex_match[2] << " to " << regex_match[3] << "!" << std::endl;
+                continue;;
             }
             std::cout << "minimal_path(" << regex_match[2] << "," << regex_match[3] << ") = ";
             for (auto it = path.begin(); it != std::prev(path.end()); it++) {
@@ -127,7 +128,7 @@ int cli(AIMN91_DataStructure& AIMN91) {
                 }
             }
             std::cout << "length(" << regex_match[2] << "," << regex_match[3] << ") = " << 
-                AIMN91.length(std::stoi(regex_match[2]), std::stoi(regex_match[3])) << std::endl;
+                AIMN91.safe_length(std::stoi(regex_match[2]), std::stoi(regex_match[3])) << std::endl;
         }
         else {
             std::cout << "Invalid operation - please try again!" << std::endl;
@@ -173,8 +174,9 @@ int cli() {
 
     /* SETUP AIMN91_DataStructure */
     AIMN91_DataStructure AIMN91(num_v, max_cost);
+    cli(AIMN91);
 
-    return cli(AIMN91);
+    return 0;
 }
 
 void test_directed_graph_no_weight() {
