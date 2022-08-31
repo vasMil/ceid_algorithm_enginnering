@@ -2,6 +2,8 @@
 #include "visualization_utils.h"
 #include "AIMN91_DataStructure.h"
 
+
+#if INTERACTIVE
 // Lazy me: Reference to the code below
 // https://stackoverflow.com/questions/4654636/how-to-determine-if-a-string-is-a-number-with-c
 bool is_number(const std::string& s)
@@ -178,6 +180,8 @@ int cli() {
 
     return 0;
 }
+
+#endif
 
 void test_directed_graph_no_weight() {
     AIMN91_DataStructure AIMN91(7);

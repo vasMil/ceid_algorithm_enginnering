@@ -6,7 +6,6 @@
 #include <stdexcept>
 #include <queue>
 #include <utility>
-#include <regex>
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
@@ -28,6 +27,11 @@
 #if VISUALIZE
     #include <boost/graph/graphviz.hpp>
     #include <cstdlib>
+#endif
+
+#define INTERACTIVE false
+#if INTERACTIVE
+    #include <regex>
 #endif
 
 /**************** GRAPH ****************/

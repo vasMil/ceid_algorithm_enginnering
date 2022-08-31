@@ -19,10 +19,11 @@ int main() {
     //     AIMN91.add(std::get<0>(*it), std::get<1>(*it), std::get<2>(*it));
     // }
     // std::cout << "AIMN91 is ready..." << std::endl;
-    
-    // /* Testing */
-    // // test_directed_graph_no_weight();
-    // cli();
+    // cli(AIMN91);
+
+    #if INTERACTIVE
+        cli();
+    #endif
 
     std::fstream csv;
     csv.open(TIMES_FILE, std::fstream::in | std::fstream::out | std::fstream::app);
@@ -35,6 +36,5 @@ int main() {
         time_add(AIMN91, "random", *it, csv);
     }
 
-    csv.close();
-    
+    csv.close();    
 }
