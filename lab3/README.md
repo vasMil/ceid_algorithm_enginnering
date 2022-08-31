@@ -23,6 +23,7 @@ Operations implemented:
 
 ## Dependancies
 If you want to run the code in a UNIX environment you will need:
+
 <i>The boost library</i>
 1. sudo apt-get install libboost-all-dev
 
