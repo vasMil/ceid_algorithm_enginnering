@@ -1,3 +1,4 @@
+#pragma once
 #include "aliases.h"
 
 template<typename NodeContent_t>
@@ -64,6 +65,7 @@ class DLTree {
 
         ~DLTree() {
             pruneChild(this->root);
+            this->is_empty = true;
         }
 
         Node<NodeContent_t>* setRoot(NodeContent_t rootContent) {
@@ -83,6 +85,10 @@ class DLTree {
         }
 
         void removeChild(Node<NodeContent_t>*& child) {
+            if(child == root) {
+                this->is_empty = true;
+                this->root = NULL;
+            }
             if (child == NULL) return;
 
             auto parent = child->parent;
@@ -120,6 +126,10 @@ class DLTree {
         }
 
         void pruneChild(Node<NodeContent_t>*& child) {
+            if(child == root) {
+                this->is_empty = true;
+                this->root = NULL;
+            }
             if (child == NULL) return;
 
             std::queue<Node<NodeContent_t>* > childrenQ;

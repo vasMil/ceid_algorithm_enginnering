@@ -19,8 +19,11 @@
 #define MAX_C 100 // Max cost of an edge
 #define MIN_C 1 // Min cost of an edge
 
-#define VISUALIZE true
+#define VISUALIZE false
 #define GRAPHVIZ_FILE "out/AIMN91_graph.dot"
+
+#define TIME_ME true
+#define TIMES_FILE "out/times.csv"
 
 #if VISUALIZE
     #include <boost/graph/graphviz.hpp>
