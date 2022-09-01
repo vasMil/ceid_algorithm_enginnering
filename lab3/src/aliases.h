@@ -29,10 +29,12 @@
     #include <cstdlib>
 #endif
 
-#define INTERACTIVE false
+#define INTERACTIVE true
 #if INTERACTIVE
     #include <regex>
 #endif
+
+#define DEBUG true
 
 /**************** GRAPH ****************/
 struct VertexInfo;

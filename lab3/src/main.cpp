@@ -4,8 +4,8 @@
 #include "testbench.h"
 
 int main() {
-    unsigned int num_vertices = 100;
-    unsigned int num_edges = 2000;
+    unsigned int num_vertices = 500;
+    unsigned int num_edges = 5000;
 
     std::cout << "Generating random edges..." << std::endl;
     auto random_edges = createRandomEdges(num_vertices, num_edges);
@@ -21,9 +21,9 @@ int main() {
     // std::cout << "AIMN91 is ready..." << std::endl;
     // cli(AIMN91);
 
-    #if INTERACTIVE
+/*     #if INTERACTIVE
         cli();
-    #endif
+    #endif */
 
     std::fstream csv;
     csv.open(TIMES_FILE, std::fstream::in | std::fstream::out | std::fstream::app);
@@ -39,7 +39,7 @@ int main() {
     // }
 
     // time_minpath()
-    int num_queries = 10;
+    int num_queries = 500;
     std::cout << "Setting up the AIMN91 data structure (adds edges)..." << std::endl;
     for(auto it = random_edges.begin(); it != random_edges.end(); ++it) {
         AIMN91.add(std::get<0>(*it), std::get<1>(*it), std::get<2>(*it));
@@ -51,6 +51,5 @@ int main() {
         time_minpath(AIMN91, std::make_pair(std::get<0>(*it), std::get<1>(*it)), "random", csv);
     }
     std::cout << "done..." << std::endl;
-    
-    csv.close();    
+    csv.close();
 }
