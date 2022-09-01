@@ -102,7 +102,7 @@ void time_minpath(
     dur.time = t1 - t0;
     dur.save_into_csv(csv);
 
-    // Run Dijkstra - without a visitor
+    // Run Dijkstra
     dur.updateInfo(typeOfGraph, "minpath", boost::num_vertices(G),
         boost::num_edges(G), "DIJKSTRA");    
     // Create a predecessor map
@@ -115,23 +115,6 @@ void time_minpath(
     dur.time = t3 - t2;
     dur.save_into_csv(csv);
 
-    // Run Dijkstra - with a visitor
-    dur.updateInfo(typeOfGraph, "minpath", boost::num_vertices(G),
-        boost::num_edges(G), "DIJKSTRA_VISITOR");    
-    // Setup the visitor
-    auto visitor = DijkstraVisitor(query.second);
-    // Create a predecessor map
-    auto t4 = std::chrono::high_resolution_clock::now();
-    try {
-        boost::dijkstra_shortest_paths(G, query.first, 
-            boost::weight_map(boost::get(&EdgeInfo::cost, G)).
-            predecessor_map(&predVec[0]).
-            visitor(visitor));
-    } catch(int e) { }
-    auto t5 = std::chrono::high_resolution_clock::now();
-
-    dur.time = t5 - t4;
-    dur.save_into_csv(csv);
 }
 
 void time_length(
