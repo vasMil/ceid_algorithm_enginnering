@@ -9,7 +9,7 @@ It does this under the assumptions below:
 1. The graph has a fixed amount of vertices n.
 2. The graph is directed.
 3. Each edge should have an integer cost in a fixed range [1...C]
-4. Eacb edge may be inserted at most once, but you may decrease its cost at any point.
+4. Each edge may be inserted at most once, but you may decrease its cost at any point.
 
 Space complexity: O(n<sup>2</sup>)
 
@@ -19,7 +19,7 @@ Operations implemented:
 - add(x,y,w)
 - decrease(x,y,Δ)
 - length(x,y)
-- minimal_path(x,y)
+- minpath(x,y)
 
 ## Dependancies
 If you want to run the code in a UNIX environment you will need:

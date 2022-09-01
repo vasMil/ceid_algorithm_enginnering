@@ -19,20 +19,20 @@ int cli(AIMN91_DataStructure& AIMN91) {
         auto viewer_to_close = renderGraphFile();
         std::cout << "Please do not close the PNG viewer, I will kill the window on exit!" << std::endl;
     #endif
-    /* PROMPT USER TO ADD EDGES - REQUEST FOR MINIMAL PATH - LENGTH */
+    /* PROMPT USER TO ADD EDGES - REQUEST FOR MINPATH - LENGTH */
     auto const command_regex = std::regex(
-        "(add|decrease|minimal_path|length)\\(([0-9]+),([0-9]+)(?:,([0-9]+))?\\)|exit"
+        "(add|decrease|minpath|length)\\(([0-9]+),([0-9]+)(?:,([0-9]+))?\\)|exit"
         );
     std::string command;
 
-    std::cout << "+-------------------------------------------------------------+" << std::endl;
-    std::cout << "| Valid operations:                                           |" << std::endl;
-    std::cout << "| add(x,y,w)          | add the edge x->y to your graph       |" << std::endl;
-    std::cout << "| decrease(x,y,delta) | decrease the cost of x->y by delta    |" << std::endl;
-    std::cout << "| minimal_path(x,y)   | return the minimal path from x to y   |" << std::endl;
-    std::cout << "| length(x,y)         | return the length of the minimal_path |" << std::endl;
-    std::cout << "| exit                | to exit the program                   |" << std::endl;
-    std::cout << "+-------------------------------------------------------------+" << std::endl;
+    std::cout << "+----------------------------------------------------------+" << std::endl;
+    std::cout << "| Valid operations:                                        |" << std::endl;
+    std::cout << "| add(x,y,w)          | add the edge x->y to your graph    |" << std::endl;
+    std::cout << "| decrease(x,y,delta) | decrease the cost of x->y by delta |" << std::endl;
+    std::cout << "| minpath(x,y)        | return the minpath from x to y     |" << std::endl;
+    std::cout << "| length(x,y)         | return the length of the minpath   |" << std::endl;
+    std::cout << "| exit                | to exit the program                |" << std::endl;
+    std::cout << "+----------------------------------------------------------+" << std::endl;
 
     while(true) {
         std::cout << std::endl;
@@ -89,19 +89,19 @@ int cli(AIMN91_DataStructure& AIMN91) {
                 viewer_to_close = renderGraphFile();
             #endif
         }
-        else if (regex_match[1] == "minimal_path") {
+        else if (regex_match[1] == "minpath") {
             for (auto i = 0; i < 2; i++) {
                 if(!is_number(arg[i])) {
                     std::cout << "Invalid arguments" << std::endl;
                     goto game_loop;
                 }
             }
-            auto path = AIMN91.safe_minimal_path(std::stoi(regex_match[2]), std::stoi(regex_match[3]));
+            auto path = AIMN91.safe_minpath(std::stoi(regex_match[2]), std::stoi(regex_match[3]));
             if (path.size() == 0) {
                 std::cout << "There is no path from " << regex_match[2] << " to " << regex_match[3] << "!" << std::endl;
                 continue;;
             }
-            std::cout << "minimal_path(" << regex_match[2] << "," << regex_match[3] << ") = ";
+            std::cout << "minpath(" << regex_match[2] << "," << regex_match[3] << ") = ";
             for (auto it = path.begin(); it != std::prev(path.end()); it++) {
                 std::cout << *it << ", ";
             }
@@ -219,5 +219,5 @@ void test_directed_graph_no_weight() {
         }
     }
 
-    AIMN91.minimal_path(0,6);
+    AIMN91.minpath(0,6);
 }

@@ -4,8 +4,8 @@
 #include "testbench.h"
 
 int main() {
-    unsigned int num_vertices = 10;
-    unsigned int num_edges = 20;
+    unsigned int num_vertices = 100;
+    unsigned int num_edges = 2000;
 
     std::cout << "Generating random edges..." << std::endl;
     auto random_edges = createRandomEdges(num_vertices, num_edges);
@@ -32,9 +32,25 @@ int main() {
         return 1;
     }
     AIMN91_DataStructure AIMN91(num_vertices);
-    for(auto it = random_edges.begin(); it != random_edges.end(); ++it) {
-        time_add(AIMN91, "random", *it, csv);
-    }
 
+    // time_add()
+    // for(auto it = random_edges.begin(); it != random_edges.end(); ++it) {
+    //     time_add(AIMN91, "random", *it, csv);
+    // }
+
+    // time_minpath()
+    int num_queries = 10;
+    std::cout << "Setting up the AIMN91 data structure (adds edges)..." << std::endl;
+    for(auto it = random_edges.begin(); it != random_edges.end(); ++it) {
+        AIMN91.add(std::get<0>(*it), std::get<1>(*it), std::get<2>(*it));
+    }
+    std::cout << "done..." << std::endl;
+    std::cout << "Start minpath queries..." << std::endl;
+    auto random_queries = createRandomEdges(num_vertices, num_queries);
+    for(auto it = random_queries.begin(); it != random_queries.end(); ++it) {
+        time_minpath(AIMN91, std::make_pair(std::get<0>(*it), std::get<1>(*it)), "random", csv);
+    }
+    std::cout << "done..." << std::endl;
+    
     csv.close();    
 }

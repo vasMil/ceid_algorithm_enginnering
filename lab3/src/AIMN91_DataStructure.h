@@ -173,8 +173,8 @@ class AIMN91_DataStructure {
             return D[x][y];
         }
 
-        // minimal_path(x,y) operation returns the shortest path from x to y 
-        std::vector<Vertex> safe_minimal_path(Vertex x, Vertex y) {
+        // minpath(x,y) operation returns the shortest path from x to y 
+        std::vector<Vertex> safe_minpath(Vertex x, Vertex y) {
             std::vector<Vertex> path;
             if (x >= num_vertices || y >= num_vertices || x < 0 || y < 0 ) {
                 std::cout << "Invalid vertices" << std::endl;
@@ -196,7 +196,7 @@ class AIMN91_DataStructure {
             return path;
         }
 
-        std::vector<Vertex> minimal_path(Vertex x, Vertex y) {
+        std::vector<Vertex> minpath(Vertex x, Vertex y) {
             Node<Vertex>* t = BACKWARD[y][x];
             std::vector<Vertex> path;
             if (t == NULL) {

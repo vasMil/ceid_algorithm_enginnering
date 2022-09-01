@@ -3,6 +3,9 @@
 #include <fstream>
 #include <chrono>
 #include <boost/graph/copy.hpp>
+#include <boost/graph/dijkstra_shortest_paths.hpp>
+
+#include "DijkstraVisitor.h"
 
 // time(ns), typeOfGraph, operation, numberOfNodes, numberOfEdges, algorithm
 struct Durations {
@@ -84,11 +87,51 @@ void time_add(
 
 void time_minpath(
     AIMN91_DataStructure& AIMN91,
-    const std::vector<std::pair<Vertex, Vertex> > queries, 
+    const std::pair<Vertex, Vertex> query, 
     std::string typeOfGraph,
     std::fstream& csv)
 {
+    Graph G = *AIMN91.get_graph();
 
+    // Run AIMN91
+    Durations dur(typeOfGraph, "minpath", boost::num_vertices(G),
+        boost::num_edges(G), "AIMN91");
+    auto t0 = std::chrono::high_resolution_clock::now();
+    auto aimn_path = AIMN91.minpath(query.first, query.second);
+    auto t1 = std::chrono::high_resolution_clock::now();
+    dur.time = t1 - t0;
+    dur.save_into_csv(csv);
+
+    // Run Dijkstra - without a visitor
+    dur.updateInfo(typeOfGraph, "minpath", boost::num_vertices(G),
+        boost::num_edges(G), "DIJKSTRA");    
+    // Create a predecessor map
+    std::vector<Vertex> predVec(boost::num_vertices(G));
+    auto t2 = std::chrono::high_resolution_clock::now();
+    boost::dijkstra_shortest_paths(G, query.first, 
+        boost::weight_map(boost::get(&EdgeInfo::cost, G)).
+        predecessor_map(&predVec[0]));
+    auto t3 = std::chrono::high_resolution_clock::now();
+    dur.time = t3 - t2;
+    dur.save_into_csv(csv);
+
+    // Run Dijkstra - with a visitor
+    dur.updateInfo(typeOfGraph, "minpath", boost::num_vertices(G),
+        boost::num_edges(G), "DIJKSTRA_VISITOR");    
+    // Setup the visitor
+    auto visitor = DijkstraVisitor(query.second);
+    // Create a predecessor map
+    auto t4 = std::chrono::high_resolution_clock::now();
+    try {
+        boost::dijkstra_shortest_paths(G, query.first, 
+            boost::weight_map(boost::get(&EdgeInfo::cost, G)).
+            predecessor_map(&predVec[0]).
+            visitor(visitor));
+    } catch(int e) { }
+    auto t5 = std::chrono::high_resolution_clock::now();
+
+    dur.time = t5 - t4;
+    dur.save_into_csv(csv);
 }
 
 void time_length(
