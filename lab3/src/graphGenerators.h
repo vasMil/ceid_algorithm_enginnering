@@ -26,7 +26,7 @@ std::vector<std::tuple<Vertex, Vertex, int> > createRandomEdges(
 }
 
 std::vector<std::tuple<Vertex, Vertex, int> > createRandomQueries(
-    const Graph G,
+    Graph G,
     unsigned int num_queries) {
 
     int num_vertices = boost::num_vertices(G);

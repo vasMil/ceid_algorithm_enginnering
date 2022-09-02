@@ -247,45 +247,27 @@ void time_decrease(
 // execute the desired time_* function
 // on a graph with num_vertices vertices and num_edges edges.
 // Output the results using fstream csv
-void time_me_driver(std::string operation, int num_queries, 
-    int num_vertices, int num_edges, 
+void time_me_driver(std::string operation, 
+    AIMN91_DataStructure& AIMN91,
+    std::vector<std::tuple<Vertex, Vertex, int> > queries,
+    std::string typeOfGraph,
     std::fstream& csv) {
+    
     std::cout << "\n\n/******** RUNNING TIME ME FUNCTION ********/" << std::endl;
-    std::cout << "Generating random edges..." << std::endl;
-    auto random_edges = createRandomEdges(num_vertices, num_edges);
-    std::cout << "Edges are ready..." << std::endl;
-
-    // Create the AIMN91 Datastructure
-    std::cout << "Setting up the AIMN91 data structure (adds edges)..." << std::endl;
-    AIMN91_DataStructure AIMN91(num_vertices);
-    // Add num_edges edges to the graph
-    for(auto it = random_edges.begin(); it != random_edges.end(); ++it) {
-        AIMN91.add(std::get<0>(*it), std::get<1>(*it), std::get<2>(*it));
-    }
-    std::cout << "done..." << std::endl;
 
     if(operation == "add") {
-        // Create more random edges to add into the graph
-        std::cout << "Generating more random edges..." << std::endl;
-        auto random_queries = createRandomEdges(num_vertices, num_queries);
-        std::cout << "Second batch of random edges is ready..." << std::endl;
-        // Add them one by one - timing each insertion
+        // Add query edges one by one - timing each insertion
         std::cout << "Running time_add()..." << std::endl;
-        for(auto it = random_queries.begin(); it != random_queries.end(); ++it) {
-            time_add(AIMN91, *it, "random", csv);
+        for(auto it = queries.begin(); it != queries.end(); ++it) {
+            time_add(AIMN91, *it, typeOfGraph, csv);
         }
         std::cout << "done..." << std::endl;
     }
     else {
-        // Create more random edges to add into the graph
-        std::cout << "Generating random queries..." << std::endl;
-        auto random_queries = createRandomQueries(*AIMN91.get_graph(), num_queries);
-        std::cout << "Random queries are ready..." << std::endl;
-
         if(operation == "minpath") {
             std::cout << "Starting minpath queries..." << std::endl;
-            for(auto it = random_queries.begin(); it != random_queries.end(); ++it) {
-                time_minpath(AIMN91, std::make_pair(std::get<0>(*it), std::get<1>(*it)), "random", csv);
+            for(auto it = queries.begin(); it != queries.end(); ++it) {
+                time_minpath(AIMN91, std::make_pair(std::get<0>(*it), std::get<1>(*it)), typeOfGraph, csv);
                 #if DEBUG
                     verifyUsingDijkstra(AIMN91, std::make_pair(std::get<0>(*it), std::get<1>(*it)));
                 #endif
@@ -294,8 +276,8 @@ void time_me_driver(std::string operation, int num_queries,
         }
         else if (operation == "length") {
             std::cout << "Starting length queries..." << std::endl;
-            for(auto it = random_queries.begin(); it != random_queries.end(); ++it) {
-                time_length(AIMN91, std::make_pair(std::get<0>(*it), std::get<1>(*it)), "random", csv);
+            for(auto it = queries.begin(); it != queries.end(); ++it) {
+                time_length(AIMN91, std::make_pair(std::get<0>(*it), std::get<1>(*it)), typeOfGraph, csv);
                 #if DEBUG
                     verifyUsingDijkstra(AIMN91, std::make_pair(std::get<0>(*it), std::get<1>(*it)));
                 #endif
@@ -304,8 +286,8 @@ void time_me_driver(std::string operation, int num_queries,
         }
         else if (operation == "decrease") {
             std::cout << "Starting decrease queries..." << std::endl;
-            for(auto it = random_queries.begin(); it != random_queries.end(); ++it) {
-                time_decrease(AIMN91, *it, "random", csv);
+            for(auto it = queries.begin(); it != queries.end(); ++it) {
+                time_decrease(AIMN91, *it, typeOfGraph, csv);
                 #if DEBUG
                     verifyUsingDijkstra(AIMN91, std::make_pair(std::get<0>(*it), std::get<1>(*it)));
                 #endif
