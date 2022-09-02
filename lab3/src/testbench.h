@@ -4,6 +4,7 @@
 #include <chrono>
 #include <boost/graph/copy.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
+#include <boost/graph/bellman_ford_shortest_paths.hpp>
 
 // time(ns), typeOfGraph, operation, numberOfNodes, numberOfEdges, algorithm
 struct Durations {
@@ -58,8 +59,8 @@ struct Durations {
 
 void time_add(
     AIMN91_DataStructure& AIMN91,
-    std::string typeOfGraph,
-    std::tuple<Vertex, Vertex, int> edge,
+    const std::tuple<Vertex, Vertex, int> edge,
+    const std::string typeOfGraph,
     std::fstream& csv)
 {
     Graph G;
@@ -74,19 +75,22 @@ void time_add(
     dur.save_into_csv(csv);
 
     dur.updateInfo(typeOfGraph, "add", boost::num_vertices(G),
-        boost::num_edges(G) + 1, "BOOST");
+        boost::num_edges(G) + 1, "DIJKSTRA");
     auto t2 = std::chrono::high_resolution_clock::now();
     auto e = boost::add_edge(std::get<0>(edge), std::get<1>(edge), G);
     boost::put(boost::get(&EdgeInfo::cost, G), e.first, std::get<2>(edge));
     auto t3 = std::chrono::high_resolution_clock::now();
     dur.time = t3 - t2;
     dur.save_into_csv(csv);
+
+    dur.updateInfo(typeOfGraph, "add", boost::num_vertices(G),
+    boost::num_edges(G) + 1, "DIJKSTRA");
 }
 
 void time_minpath(
     AIMN91_DataStructure& AIMN91,
     const std::pair<Vertex, Vertex> query, 
-    std::string typeOfGraph,
+    const std::string typeOfGraph,
     std::fstream& csv)
 {
     Graph G = *AIMN91.get_graph();
@@ -95,14 +99,14 @@ void time_minpath(
     Durations dur(typeOfGraph, "minpath", boost::num_vertices(G),
         boost::num_edges(G), "AIMN91");
     auto t0 = std::chrono::high_resolution_clock::now();
-    auto aimn_path = AIMN91.minpath(query.first, query.second);
+    AIMN91.minpath(query.first, query.second);
     auto t1 = std::chrono::high_resolution_clock::now();
     dur.time = t1 - t0;
     dur.save_into_csv(csv);
 
     // Run Dijkstra
     dur.updateInfo(typeOfGraph, "minpath", boost::num_vertices(G),
-        boost::num_edges(G), "DIJKSTRA");    
+        boost::num_edges(G), "DIJKSTRA");
     // Create a predecessor map
     std::vector<Vertex> predVec(boost::num_vertices(G));
     auto t2 = std::chrono::high_resolution_clock::now();
@@ -113,11 +117,156 @@ void time_minpath(
     auto t3 = std::chrono::high_resolution_clock::now();
     dur.time = t3 - t2;
     dur.save_into_csv(csv);
+}
+
+void time_length(
+    AIMN91_DataStructure& AIMN91,
+    const std::pair<Vertex, Vertex> query, 
+    std::string typeOfGraph,
+    std::fstream& csv)
+{
+    Graph G = *AIMN91.get_graph();
+
+    // Run AIMN91
+    Durations dur(typeOfGraph, "length", boost::num_vertices(G),
+        boost::num_edges(G), "AIMN91");
+    auto t0 = std::chrono::high_resolution_clock::now();
+    AIMN91.length(query.first, query.second);
+    auto t1 = std::chrono::high_resolution_clock::now();
+    dur.time = t1 - t0;
+    dur.save_into_csv(csv);
+
+    // Run Dijkstra
+    dur.updateInfo(typeOfGraph, "length", boost::num_vertices(G),
+        boost::num_edges(G), "DIJKSTRA");
+    // Create a distance map
+    std::vector<unsigned int> distVec(boost::num_vertices(G));
+    auto t2 = std::chrono::high_resolution_clock::now();
+    boost::dijkstra_shortest_paths(G, query.first, 
+        boost::weight_map(boost::get(&EdgeInfo::cost, G)).
+        distance_map(
+            boost::make_iterator_property_map(
+            distVec.begin(), get(boost::vertex_index, G)))
+    );
+    auto t3 = std::chrono::high_resolution_clock::now();
+    dur.time = t3 - t2;
+    dur.save_into_csv(csv);
+}
+
+void time_decrease(
+    AIMN91_DataStructure& AIMN91,
+    const std::tuple<Vertex, Vertex, int> query, 
+    const std::string typeOfGraph,
+    std::fstream& csv)
+{
+    Graph G;
+    boost::copy_graph(*AIMN91.get_graph(), G);
+    
+    Durations dur(typeOfGraph, "decrease", boost::num_vertices(G),
+        boost::num_edges(G) + 1, "AIMN91");
+    auto t0 = std::chrono::high_resolution_clock::now();
+    AIMN91.decrease(std::get<0>(query), std::get<1>(query), std::get<2>(query));
+    auto t1 = std::chrono::high_resolution_clock::now();
+    dur.time = t1 - t0;
+    dur.save_into_csv(csv);
+
+    dur.updateInfo(typeOfGraph, "decrease", boost::num_vertices(G),
+        boost::num_edges(G) + 1, "DIJKSTRA");
+    auto t2 = std::chrono::high_resolution_clock::now();
+    auto e = boost::edge(std::get<0>(query), std::get<1>(query), G);
+    boost::put(boost::get(&EdgeInfo::cost, G), e.first, std::get<2>(query));
+    auto t3 = std::chrono::high_resolution_clock::now();
+    dur.time = t3 - t2;
+    dur.save_into_csv(csv);
+
+    dur.updateInfo(typeOfGraph, "add", boost::num_vertices(G),
+    boost::num_edges(G) + 1, "DIJKSTRA");
+}
+
+// Given the name of the operation and the number of queries
+// execute the desired time_* function
+// on a graph with num_vertices vertices and num_edges edges.
+// Output the results using fstream csv
+void time_me_driver(std::string operation, int num_queries, 
+    int num_vertices, int num_edges, 
+    std::fstream& csv) {
+    std::cout << "\n\n/******** RUNNING TIME ME FUNCTION ********/" << std::endl;
+    std::cout << "Generating random edges..." << std::endl;
+    auto random_edges = createRandomEdges(num_vertices, num_edges);
+    std::cout << "Edges are ready..." << std::endl;
+
+    // Create the AIMN91 Datastructure
+    std::cout << "Setting up the AIMN91 data structure (adds edges)..." << std::endl;
+    AIMN91_DataStructure AIMN91(num_vertices);
+    // Add num_edges edges to the graph
+    for(auto it = random_edges.begin(); it != random_edges.end(); ++it) {
+        AIMN91.add(std::get<0>(*it), std::get<1>(*it), std::get<2>(*it));
+    }
+    std::cout << "done..." << std::endl;
+
+    if(operation == "add") {
+        // Create more random edges to add into the graph
+        std::cout << "Generating more random edges..." << std::endl;
+        auto random_queries = createRandomEdges(num_vertices, num_queries);
+        std::cout << "Second batch of random edges is ready..." << std::endl;
+        // Add them one by one - timing each insertion
+        std::cout << "Running time_add()..." << std::endl;
+        for(auto it = random_queries.begin(); it != random_queries.end(); ++it) {
+            time_add(AIMN91, *it, "random", csv);
+        }
+        std::cout << "done..." << std::endl;
+    }
+    else {
+        // Create more random edges to add into the graph
+        std::cout << "Generating random queries..." << std::endl;
+        auto random_queries = createRandomQueries(*AIMN91.get_graph(), num_queries);
+        std::cout << "Random queries are ready..." << std::endl;
+
+        if(operation == "minpath") {
+            std::cout << "Starting minpath queries..." << std::endl;
+            for(auto it = random_queries.begin(); it != random_queries.end(); ++it) {
+                time_minpath(AIMN91, std::make_pair(std::get<0>(*it), std::get<1>(*it)), "random", csv);
+                #if DEBUG
+                    verifyUsingDijkstra(AIMN91, std::make_pair(std::get<0>(*it), std::get<1>(*it)));
+                #endif
+            }
+            std::cout << "done..." << std::endl;
+        }
+        else if (operation == "length") {
+            std::cout << "Starting length queries..." << std::endl;
+            for(auto it = random_queries.begin(); it != random_queries.end(); ++it) {
+                time_length(AIMN91, std::make_pair(std::get<0>(*it), std::get<1>(*it)), "random", csv);
+                #if DEBUG
+                    verifyUsingDijkstra(AIMN91, std::make_pair(std::get<0>(*it), std::get<1>(*it)));
+                #endif
+            }
+            std::cout << "done..." << std::endl;
+        }
+        else if (operation == "decrease") {
+            std::cout << "Starting decrease queries..." << std::endl;
+            for(auto it = random_queries.begin(); it != random_queries.end(); ++it) {
+                time_decrease(AIMN91, *it, "random", csv);
+                #if DEBUG
+                    verifyUsingDijkstra(AIMN91, std::make_pair(std::get<0>(*it), std::get<1>(*it)));
+                #endif
+            }
+            std::cout << "done..." << std::endl;
+        }
+        else {
+            std::cout << "Invalid operation..." << std::endl;
+        }
+    }
+}
 
 #if DEBUG
-    // Rerun the boost::disjkstra_shortest_paths to get the length of each path
+void verifyUsingDijkstra(AIMN91_DataStructure& AIMN91, std::pair<Vertex, Vertex> query) {
+    Graph G = *AIMN91.get_graph();
+    auto aimn_path = AIMN91.minpath(query.first, query.second);
+
+    // Run the boost::disjkstra_shortest_paths and get the length of each path aswell,
     // since two minpaths may have different nodes in between but the same length
     // hence AIMN91 has choosen a different path than Dijkstra and has not made a mistake
+    std::vector<Vertex> predVec(boost::num_vertices(G));
     std::vector<unsigned int> distVec(boost::num_vertices(G));
     boost::dijkstra_shortest_paths(G, query.first, 
         boost::weight_map(boost::get(&EdgeInfo::cost, G)).
@@ -165,25 +314,5 @@ void time_minpath(
             std::cout << (*it) << std::endl;
         }
     }
+}
 #endif
-
-}
-
-void time_length(
-    AIMN91_DataStructure& AIMN91,
-    const std::vector<std::pair<Vertex, Vertex> > queries, 
-    std::string typeOfGraph,
-    std::fstream& csv)
-{
-
-}
-
-void time_decrease(
-    Graph& G, 
-    AIMN91_DataStructure& AIMN91,
-    const std::vector<std::pair<Vertex, Vertex> > queries, 
-    std::string typeOfGraph,
-    std::fstream& csv)
-{
-
-}

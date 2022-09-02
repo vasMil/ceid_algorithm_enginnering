@@ -1,4 +1,5 @@
 #include "aliases.h"
+#include <boost/graph/random.hpp>
 
 std::vector<std::tuple<Vertex, Vertex, int> > createRandomEdges(
     unsigned int num_vertices, 
@@ -22,4 +23,28 @@ std::vector<std::tuple<Vertex, Vertex, int> > createRandomEdges(
     for(auto it = random_vpairs.begin(); it != random_vpairs.end(); ++it)
         random_edges.push_back(std::make_tuple(it->first, it->second, random_cost(rng)));
     return random_edges;
+}
+
+std::vector<std::tuple<Vertex, Vertex, int> > createRandomQueries(
+    const Graph G,
+    unsigned int num_queries) {
+
+    int num_vertices = boost::num_vertices(G);
+    int num_edges = boost::num_edges(G);
+
+    auto edgeCost = boost::get(&EdgeInfo::cost, G);
+
+    std::vector<std::tuple<Vertex, Vertex, int> > queries;
+
+    boost::random::mt19937 rng;
+
+    // Get a random edge and create a decrese cost (delta: Δ)
+    Edge e;
+    for(unsigned int i = 0; i < num_queries; i++) {
+        e = boost::random_edge(G, rng);
+        boost::random::uniform_int_distribution<> random_cost(0, edgeCost[e] - 1);
+        queries.push_back(std::make_tuple(boost::source(e, G), boost::target(e, G), random_cost(rng)));
+    }
+
+    return queries;
 }
