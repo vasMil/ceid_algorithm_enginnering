@@ -48,3 +48,14 @@ std::vector<std::tuple<Vertex, Vertex, int> > createRandomQueries(
 
     return queries;
 }
+
+std::vector<std::pair<Vertex, Vertex> > getAllPairQueries(const Graph G) {
+    std::vector<std::pair<Vertex, Vertex> > queries;
+    VertexIter iit, iend, jit, jend;
+    for(boost::tie(iit, iend) = boost::vertices(G); iit != iend; iit++) {
+        for(boost::tie(jit, jend) = boost::vertices(G); jit != jend; jit++) {
+            if(iit != jit) queries.push_back(std::make_pair(*iit, *jit));
+        }
+    }
+    return queries;
+}

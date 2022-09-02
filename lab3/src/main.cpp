@@ -8,7 +8,7 @@ int main() {
     unsigned int num_edges = 2020;
     unsigned int num_queries = 200;
 
-    std::fstream csv;
+/*     std::fstream csv;
     csv.open(TIMES_FILE, std::fstream::in | std::fstream::out | std::fstream::app);
     if(!csv.is_open()) {
         std::cout << "Something went wrong with the .csv file!" << std::endl;
@@ -19,6 +19,11 @@ int main() {
     time_me_driver("decrease", num_queries, num_vertices, num_edges, csv);
     time_me_driver("minpath", num_queries, num_vertices, num_edges, csv);
     time_me_driver("length", num_queries, num_vertices, num_edges, csv);
-    
-    csv.close();
+    csv.close(); */
+
+    std::cout << "Generating random edges..." << std::endl;
+    auto edges = createRandomEdges(num_vertices, num_edges);
+    std::cout << "Edges are ready..." << std::endl;
+    time_with_floyd_warshall_sp(num_vertices, edges, "random");
+
 }

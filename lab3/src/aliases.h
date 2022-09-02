@@ -23,6 +23,7 @@
 
 #define TIME_ME true
 #define TIMES_FILE "out/times.csv"
+#define TIMES_FLOYD_WARSHAL "out/times_floyd_warshal.csv"
 
 #if VISUALIZE
     #include <boost/graph/graphviz.hpp>

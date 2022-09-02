@@ -4,7 +4,8 @@
 #include <chrono>
 #include <boost/graph/copy.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
-#include <boost/graph/bellman_ford_shortest_paths.hpp>
+#include <boost/graph/floyd_warshall_shortest.hpp>
+#include <boost/graph/exterior_property.hpp>
 
 // time(ns), typeOfGraph, operation, numberOfNodes, numberOfEdges, algorithm
 struct Durations {
@@ -29,6 +30,7 @@ struct Durations {
         this->numOfNodes = n;
         this->numOfEdges = m;
         this->algorithm = algorithm;
+        this->time = (std::chrono::duration<double, std::nano>)0;
     }
 
     void save_into_csv(std::fstream& csv) {
@@ -56,6 +58,64 @@ struct Durations {
         csv << "time,typeOfGraph,operation,numberOfNodes,numberOfEdges,algorithm" << std::endl;
     }
 };
+
+void time_with_floyd_warshall_sp(unsigned int num_vertices, 
+    std::vector<std::tuple<Vertex, Vertex, int> > edges,
+    std::string typeOfGraph) {
+    // Open a stream
+    std::fstream csv;
+    csv.open(TIMES_FLOYD_WARSHAL, std::fstream::in | std::fstream::out | std::fstream::app);
+    if(!csv.is_open()) {
+        std::cout << "Something went wrong with the .csv file!" << std::endl;
+        return;
+    }
+
+    Durations dur(typeOfGraph, "-", num_vertices, edges.size(), "AIMN91");
+    auto eit = edges.begin();
+    auto eend = edges.end();
+
+    std::cout << "\n\n/******************** AIMN91 vs FLOYD_WARSHALL ********************/" << std::endl;
+    std::cout << "Running AIMN91..." << std::endl;
+    auto t0 = std::chrono::high_resolution_clock::now();
+
+    // Create the AIMN91 datastructure
+    auto AIMN91 = AIMN91_DataStructure(num_vertices);
+
+    // Start adding the edges
+    for( ; eit != eend; eit++) {
+        AIMN91.add(std::get<0>(*eit), std::get<1>(*eit), std::get<2>(*eit));
+    }
+    auto t1 = std::chrono::high_resolution_clock::now();
+    std::cout << "AIMN91 done..." << std::endl;
+    dur.time = t1 - t0;
+    dur.save_into_csv(csv);
+
+    Edge e;
+    boost::exterior_vertex_property<Graph, unsigned int>::matrix_type distMat(num_vertices);
+    dur.updateInfo(typeOfGraph, "-", num_vertices, edges.size(), "FLOYD_WARSHALL");
+    std::cout << "Running FLOYD_WARSHALL..." << std::endl;
+    auto t2 = std::chrono::high_resolution_clock::now();
+    // Create a Graph for the floyd warshall algorithm
+    Graph G;
+    for (int i = 0; i < num_vertices; i++) {
+        boost::add_vertex(G);
+    }
+    // Add all edges
+    for( ; eit != eend; eit++) {
+        e = boost::add_edge(std::get<0>(*eit), std::get<1>(*eit), G).first;
+        boost::put(boost::get(&EdgeInfo::cost, G), e, std::get<2>(*eit));
+    }
+    // Run the algorithm
+    boost::floyd_warshall_all_pairs_shortest_paths(G, distMat, boost::weight_map(boost::get(&EdgeInfo::cost, G)));
+
+    auto t3 = std::chrono::high_resolution_clock::now();
+    std::cout << "FLOYD_WARSHALL done..." << std::endl;
+    dur.time = t3 - t2;
+    dur.save_into_csv(csv);
+
+    // Close the output file
+    csv.close();
+}
 
 void time_add(
     AIMN91_DataStructure& AIMN91,
