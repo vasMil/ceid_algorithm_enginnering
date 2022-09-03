@@ -18,13 +18,13 @@ int main() {
     }
 
     #if TIME_RANDOM
-        unsigned int num_vertices = 400;
-        unsigned int num_edges = 800;
+        unsigned int num_vertices = 200; // 50, 100, 200, 300, 400, 500, 600, 800, 1000
+        unsigned int num_edges = 2*num_vertices;
         unsigned int num_queries = 200;
         std::string typeOfGraph = "random";
     #endif
     #if TIME_AIMN91_SYNTH
-        unsigned int num_vertices = 600;
+        unsigned int num_vertices = 600; // 30, 60, 90, 102, 150, 201, 300, 399, 402, 600
         std::string typeOfGraph = "aimn91_synth";
     #endif
 
