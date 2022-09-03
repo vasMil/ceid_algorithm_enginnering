@@ -6,7 +6,7 @@
 #define TIME true
 #define TIME_RANDOM false
 #define TIME_AIMN91_SYNTH true
-#define TIME_FLOYD_WARSHAL false
+#define TIME_FLOYD_WARSHAL true
 
 int main() {
 #if TIME
@@ -24,7 +24,7 @@ int main() {
         std::string typeOfGraph = "random";
     #endif
     #if TIME_AIMN91_SYNTH
-        unsigned int num_vertices = 798;
+        unsigned int num_vertices = 600;
         std::string typeOfGraph = "aimn91_synth";
     #endif
 
@@ -78,6 +78,11 @@ int main() {
         time_me_driver("decrease", AIMN91, sedges, typeOfGraph, csv);
         time_me_driver("minpath", AIMN91, sedges, typeOfGraph, csv);
         time_me_driver("length", AIMN91, sedges, typeOfGraph, csv);
+        #if TIME_FLOYD_WARSHAL
+            std::vector<std::tuple<Vertex, Vertex, int> > merged_edges(fedges.size() + sedges.size());
+            std::merge(fedges.begin(), fedges.end(), sedges.begin(), sedges.end(), merged_edges.begin());
+            time_with_floyd_warshall_sp(num_vertices, merged_edges, typeOfGraph);
+        #endif
     #endif
 
 
