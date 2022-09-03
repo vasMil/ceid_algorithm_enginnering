@@ -59,3 +59,44 @@ std::vector<std::pair<Vertex, Vertex> > getAllPairQueries(const Graph G) {
     }
     return queries;
 }
+
+// Return a pair of vectors. The first vector will contain the edges that
+// set up the graph and bring it to the desired state, so when the edges of the second vector
+// are added Ω(n^3) operations are forced to the distance matrix D.
+std::pair<std::vector<std::tuple<Vertex, Vertex, int> >, std::vector<std::tuple<Vertex, Vertex, int> > >  
+    aimn91_synthetic_graph(unsigned int num_vertices) {
+    std::vector<std::tuple<Vertex, Vertex, int> > fedges;
+    std::vector<std::tuple<Vertex, Vertex, int> > sedges;
+    if(num_vertices % 3 != 0) {
+        std::cout << "num_vertices must be a multiple of 3" << std::endl;
+        return std::make_pair(fedges, sedges);
+    }
+    if(num_vertices == 0) {
+        return std::make_pair(fedges, sedges);
+    }
+
+    // Find the limits of each set of vertices (s, x, t) each of size n/3
+    int set_size = num_vertices/3;
+    Vertex s_first = 0;
+    Vertex s_last = s_first + set_size - 1;
+    Vertex x_first = s_last + 1;
+    Vertex x_last = s_last + set_size;
+    Vertex t_first = x_last + 1;
+    Vertex t_last = x_last + set_size;
+
+    // Get the first set of vertices
+    for (auto i = 0; i < set_size; i++) {
+        fedges.push_back(std::make_tuple(s_first + i, x_first, 2));
+        fedges.push_back(std::make_tuple(x_last, t_first + i, 2));
+        if(i > 0 && i < set_size-1) {
+            fedges.push_back(std::make_tuple(x_first+i,x_first+i+1, 2));
+        }
+    }
+
+    // Get the second set of vertices
+    for (auto i = 1; i < set_size-2; i++) {
+        sedges.push_back(std::make_tuple(x_first, x_first+i, 2));
+    }
+
+    return std::make_pair(fedges, sedges);
+}

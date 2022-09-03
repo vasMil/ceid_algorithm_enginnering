@@ -223,7 +223,7 @@ void time_decrease(
     boost::copy_graph(*AIMN91.get_graph(), G);
     
     Durations dur(typeOfGraph, "decrease", boost::num_vertices(G),
-        boost::num_edges(G) + 1, "AIMN91");
+        boost::num_edges(G), "AIMN91");
     auto t0 = std::chrono::high_resolution_clock::now();
     AIMN91.decrease(std::get<0>(query), std::get<1>(query), std::get<2>(query));
     auto t1 = std::chrono::high_resolution_clock::now();
@@ -231,16 +231,13 @@ void time_decrease(
     dur.save_into_csv(csv);
 
     dur.updateInfo(typeOfGraph, "decrease", boost::num_vertices(G),
-        boost::num_edges(G) + 1, "DIJKSTRA");
+        boost::num_edges(G), "DIJKSTRA");
     auto t2 = std::chrono::high_resolution_clock::now();
     auto e = boost::edge(std::get<0>(query), std::get<1>(query), G);
     boost::put(boost::get(&EdgeInfo::cost, G), e.first, std::get<2>(query));
     auto t3 = std::chrono::high_resolution_clock::now();
     dur.time = t3 - t2;
     dur.save_into_csv(csv);
-
-    dur.updateInfo(typeOfGraph, "add", boost::num_vertices(G),
-    boost::num_edges(G) + 1, "DIJKSTRA");
 }
 
 // Given the name of the operation and the number of queries
