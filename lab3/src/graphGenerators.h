@@ -12,7 +12,7 @@ std::vector<std::tuple<Vertex, Vertex, int> > createRandomEdges(
 
     boost::random::mt19937 rng;
     boost::random::uniform_int_distribution<> random_Vertex(0,num_vertices-1);
-    boost::random::uniform_int_distribution<> random_cost(1,MAX_C);
+    boost::random::uniform_int_distribution<> random_cost(1, MAX_C);
 
     // Create a set of random pairs of vertices
     while(random_vpairs.size() != num_edges) {

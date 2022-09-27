@@ -18,10 +18,10 @@
 #define MAX_C 100 // Max cost of an edge
 #define MIN_C 1 // Min cost of an edge
 
-#define VISUALIZE false
+#define VISUALIZE true
 #define GRAPHVIZ_FILE "out/AIMN91_graph.dot"
 
-#define TIME_ME true
+#define TIME_ME false
 #define TIMES_FILE "out/times.csv"
 #define TIMES_FLOYD_WARSHAL "out/times_floyd_warshal.csv"
 
@@ -30,7 +30,7 @@
     #include <cstdlib>
 #endif
 
-#define INTERACTIVE false
+#define INTERACTIVE true
 #if INTERACTIVE
     #include <regex>
 #endif

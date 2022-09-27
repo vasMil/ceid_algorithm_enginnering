@@ -1,12 +1,11 @@
 #include "aliases.h"
 #include "utils.h"
-#include "graphGenerators.h"
 #include "testbench.h"
 
-#define TIME true
+#define TIME false
 #define TIME_RANDOM false
-#define TIME_AIMN91_SYNTH true
-#define TIME_FLOYD_WARSHAL true
+#define TIME_AIMN91_SYNTH false
+#define TIME_FLOYD_WARSHAL false
 
 int main() {
 #if TIME
@@ -89,4 +88,8 @@ int main() {
     csv.close();
 #endif
 
+#if INTERACTIVE
+    
+    cli();
+#endif
 }

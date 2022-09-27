@@ -1,7 +1,7 @@
 #include "aliases.h"
 #include "visualization_utils.h"
 #include "AIMN91_DataStructure.h"
-
+#include "graphGenerators.h"
 
 #if INTERACTIVE
 // Lazy me: Reference to the code below
@@ -145,7 +145,6 @@ int cli(AIMN91_DataStructure& AIMN91) {
 
 int cli() {
     unsigned int num_v;
-    unsigned int max_cost;
 
     /* HANDLE USER INPUT */
     // https://stackoverflow.com/questions/19696442/how-to-catch-invalid-input-in-c
@@ -160,24 +159,41 @@ int cli() {
 
     std::cin.clear();
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    
-    std::cout << "Specify the maximum cost an edge may have: ";
-    std::cin >> max_cost;
-    while (std::cin.fail()) {
+
+    std::string init_graph;
+    std::cout << "Should I initialize a graph for you? (random, aimn91_synth, no): ";
+    std::cin >> init_graph;
+    while (std::cin.fail() || (init_graph != "random" && init_graph != "aimn91_synth" && init_graph != "no")) {
         std::cin.clear();
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        std::cout << "Bad entry! Specify the maximum cost an edge may have: ";
-        std::cin >> max_cost;
+        std::cout << "Bad entry! Your options are: random, aimn91_synth or no!" << std::endl;
+        std::cin >> init_graph;
+        std::cout << "Should I initialize a graph for you? (random, aimn91_synth, no): ";
     }
     std::cout << std::endl;
     std::cin.clear();
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
-
     /* SETUP AIMN91_DataStructure */
-    AIMN91_DataStructure AIMN91(num_v, max_cost);
-    cli(AIMN91);
+    AIMN91_DataStructure AIMN91(num_v);
+    std::vector<std::tuple<Vertex, Vertex, int> > fedges;
+    if (init_graph != "no") {
+        int num_e;
+        if (init_graph == "random") {        
+            std::cout << "Specify |E|: ";
+            std::cin >> num_e;
+            fedges = createRandomEdges(num_v, num_e);
+        }
+        else if (init_graph == "aimn91_synth") {
+            auto temp = aimn91_synthetic_graph(num_v);
+            fedges = temp.first;
+        }
+        for(auto it = fedges.begin(); it != fedges.end(); ++it) {
+            AIMN91.add(std::get<0>(*it), std::get<1>(*it), std::get<2>(*it));
+        }
+    }
 
+    cli(AIMN91);
     return 0;
 }
 
