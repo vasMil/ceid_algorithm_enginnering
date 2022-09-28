@@ -18,24 +18,25 @@
 #define MAX_C 100 // Max cost of an edge
 #define MIN_C 1 // Min cost of an edge
 
-#define VISUALIZE true
-#define GRAPHVIZ_FILE "out/AIMN91_graph.dot"
+#define INTERACTIVE false
+#define VISUALIZE false
+#define TIME false
+#define DEBUG false
 
-#define TIME_ME false
+#define GRAPHVIZ_FILE "out/AIMN91_graph.dot"
 #define TIMES_FILE "out/times.csv"
-#define TIMES_FLOYD_WARSHAL "out/times_floyd_warshal.csv"
+#define TIMES_BATCH "out/times_batch.csv"
 
 #if VISUALIZE
     #include <boost/graph/graphviz.hpp>
     #include <cstdlib>
 #endif
 
-#define INTERACTIVE true
 #if INTERACTIVE
     #include <regex>
 #endif
 
-#define DEBUG false
+
 
 /**************** GRAPH ****************/
 struct VertexInfo;

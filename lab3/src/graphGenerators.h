@@ -42,6 +42,7 @@ std::vector<std::tuple<Vertex, Vertex, int> > createRandomQueries(
     // Get a random edge and create a decrese cost (delta: Δ)
     Edge e;
     for(unsigned int i = 0; i < num_queries; i++) {
+        std::cout << "OK" << std::endl;
         e = boost::random_edge(G, rng);
         boost::random::uniform_int_distribution<> random_cost(0, edgeCost[e] - 1);
         queries.push_back(std::make_tuple(boost::source(e, G), boost::target(e, G), random_cost(rng)));
@@ -50,22 +51,54 @@ std::vector<std::tuple<Vertex, Vertex, int> > createRandomQueries(
     return queries;
 }
 
-std::vector<std::pair<Vertex, Vertex> > getAllPairQueries(const Graph G) {
-    std::vector<std::pair<Vertex, Vertex> > queries;
+std::vector<std::tuple<Vertex, Vertex, int> > createCompleteGraph(const Graph G) {
+    std::vector<std::tuple<Vertex, Vertex, int> > queries;
+    // Init utils for random cost
+    boost::random::mt19937 rng(std::time(0));
+    boost::random::uniform_int_distribution<> random_cost(1, MAX_C);
+    // Create the tuples
     VertexIter iit, iend, jit, jend;
     for(boost::tie(iit, iend) = boost::vertices(G); iit != iend; iit++) {
         for(boost::tie(jit, jend) = boost::vertices(G); jit != jend; jit++) {
-            if(iit != jit) queries.push_back(std::make_pair(*iit, *jit));
+            if(iit != jit) queries.push_back(std::make_tuple(*iit, *jit, random_cost(rng)));
         }
     }
     return queries;
+}
+
+std::vector<std::tuple<Vertex, Vertex, int> > getMissingEdgesAsQueries(Graph G, unsigned int num_queries) {
+    int cnt = 0;
+    int num_vertices = boost::num_vertices(G);
+    int num_edges = boost::num_edges(G);
+    std::vector<std::tuple<Vertex, Vertex, int> > edges;
+    boost::random::mt19937 rng(std::time(0));
+    boost::random::uniform_int_distribution<> random_vertex_dist(0, num_vertices-1);
+    boost::random::uniform_int_distribution<> random_cost(0, MAX_C);
+    Vertex v, u;
+
+    if (num_edges + num_queries > num_vertices*(num_vertices-1)) {
+        throw std::invalid_argument("Too many edges for a Graph with no parallel edges");
+    }
+
+    while (num_queries != cnt) {
+        // Get a random vertex
+        v = random_vertex_dist(rng);
+        u = random_vertex_dist(rng);
+        if(!boost::edge(v,u,G).second) {
+            edges.push_back(std::make_tuple(v,u, random_cost(rng)));
+            cnt++;
+        }
+    }
+
+    return edges;
 }
 
 // Return a pair of vectors. The first vector will contain the edges that
 // set up the graph and bring it to the desired state, so when the edges of the second vector
 // are added Ω(n^3) operations are forced to the distance matrix D.
 std::pair<std::vector<std::tuple<Vertex, Vertex, int> >, std::vector<std::tuple<Vertex, Vertex, int> > >  
-    aimn91_synthetic_graph(unsigned int num_vertices) {
+    aimn91_synthetic_graph(unsigned int num_vertices) 
+{
     std::vector<std::tuple<Vertex, Vertex, int> > fedges;
     std::vector<std::tuple<Vertex, Vertex, int> > sedges;
     if(num_vertices % 3 != 0) {
