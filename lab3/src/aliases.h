@@ -18,8 +18,8 @@
 #define MAX_C 100 // Max cost of an edge
 #define MIN_C 1 // Min cost of an edge
 
-#define INTERACTIVE false
-#define VISUALIZE false
+#define INTERACTIVE true
+#define VISUALIZE true
 #define TIME false
 #define DEBUG false
 

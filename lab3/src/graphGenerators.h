@@ -36,15 +36,20 @@ std::vector<std::tuple<Vertex, Vertex, int> > createRandomQueries(
     auto edgeCost = boost::get(&EdgeInfo::cost, G);
 
     std::vector<std::tuple<Vertex, Vertex, int> > queries;
+    std::set<std::pair<Vertex, Vertex> > qs;
 
     boost::random::mt19937 rng(std::time(0));
 
     // Get a random edge and create a decrese cost (delta: Δ)
     Edge e;
-    for(unsigned int i = 0; i < num_queries; i++) {
-        std::cout << "OK" << std::endl;
+    while(qs.size() != num_queries) {
         e = boost::random_edge(G, rng);
         boost::random::uniform_int_distribution<> random_cost(0, edgeCost[e] - 1);
+        auto delta = random_cost(rng);
+        if(delta >= edgeCost[e] || qs.find(std::make_pair(boost::source(e, G), boost::target(e, G))) != qs.end()) {
+            continue;
+        }
+        qs.insert(std::make_pair(boost::source(e, G), boost::target(e, G)));
         queries.push_back(std::make_tuple(boost::source(e, G), boost::target(e, G), random_cost(rng)));
     }
 

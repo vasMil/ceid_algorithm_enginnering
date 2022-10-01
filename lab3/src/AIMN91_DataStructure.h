@@ -32,6 +32,7 @@ class AIMN91_DataStructure {
             Vertex y;
             std::queue<Vertex> Q;
             DLTree<Vertex> N;
+            // A vector that contains pointers to DLTree Nodes
             Node<Vertex>* N_id_guide[num_vertices];
             for (int i = 0; i < num_vertices; i++) {
                 N_id_guide[i] = NULL;
@@ -42,8 +43,12 @@ class AIMN91_DataStructure {
                 y = Q.front();
                 Q.pop();
                 if(D[x][i] + w + D[j][y] < D[x][y]) {
+                // A shorter path is found
                     if (y == j) {
+                    // Insert y into DESC[x] as the child of i
                         if (FORWARD[x][j] != NULL){
+                        // y was already in DESC[x], thus it needs to be removed before inserting it
+                        // to its new location
                             DESC[x].removeChild(FORWARD[x][j]);
                             N.removeChild(N_id_guide[j]);
                         }
@@ -51,6 +56,7 @@ class AIMN91_DataStructure {
                         N_id_guide[j] = N.setRoot(j);
                     }
                     else {
+                    // Insert y into DESC[x] as a child of the same parent it has in DESC[j]
                         if (FORWARD[x][y] != NULL) {
                             DESC[x].removeChild(FORWARD[x][y]);
                             N.removeChild(N_id_guide[y]);
@@ -74,8 +80,8 @@ class AIMN91_DataStructure {
                         }
                         BACKWARD[y][x] = ANC[y].addChild(BACKWARD[y][BACKWARD[i][x]->parent->content], x);
                     }
-                    
                     D[x][y] = D[x][i] + w + D[j][y];
+                    // Examine all the children of y in T in a recursive fashion (pseudocode uses a while loop)
                     auto ch_it = T_id_guide[y]->children.begin(); auto ch_end = T_id_guide[y]->children.end();
                     for ( ; ch_it != ch_end; ch_it++) {
                         Q.push((*ch_it)->content);
@@ -270,11 +276,11 @@ class AIMN91_DataStructure {
             }
 
             // Check if decreased cost is valid
-            int decr_cost = edge_cost_pmap[e.first] - delta;
+            unsigned int decr_cost = edge_cost_pmap[e.first] - delta;
             if(decr_cost < MIN_C) {
                 std::cout << "Decrease operation is ignored!" << std::endl;
-                std::cout << "Decreasing the edge cost by " << delta << "will result to an edge cost of " <<
-                    edge_cost_pmap[e.first] - delta << "which is less than min acceptable cost: " << MIN_C << std::endl;
+                std::cout << "Decreasing the edge cost by " << delta << " will result to an edge cost of " <<
+                    edge_cost_pmap[e.first] - delta << " which is less than min acceptable cost: " << MIN_C << std::endl;
                 return;
             }
 
@@ -285,9 +291,9 @@ class AIMN91_DataStructure {
             // Get the edge
             auto e = boost::edge(i, j, G);
             auto edge_cost_pmap = boost::get(&EdgeInfo::cost, G);
-            int decr_cost = edge_cost_pmap[e.first] - delta;
+            unsigned int decr_cost = edge_cost_pmap[e.first] - delta;
             // Remove the old edge
-            boost::remove_edge(i, j, G);
+            boost::remove_edge(e.first, G);
             this->num_edges--;
             // Add the new edge
             this->add(i,j,decr_cost);
