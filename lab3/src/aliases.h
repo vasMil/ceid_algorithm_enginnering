@@ -12,6 +12,11 @@
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
 
+#include <boost/graph/dijkstra_shortest_paths.hpp>
+#include <boost/graph/copy.hpp>
+#include <boost/graph/floyd_warshall_shortest.hpp>
+#include <boost/graph/exterior_property.hpp>
+
 #include "DLTree.h"
 
 #define INF UINT_MAX

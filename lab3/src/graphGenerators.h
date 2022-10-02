@@ -1,3 +1,4 @@
+#pragma once
 #include "aliases.h"
 #include <boost/graph/random.hpp>
 #include <ctime>

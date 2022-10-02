@@ -1,3 +1,4 @@
+#pragma once
 #include "aliases.h"
 #include "AIMN91_DataStructure.h"
 
