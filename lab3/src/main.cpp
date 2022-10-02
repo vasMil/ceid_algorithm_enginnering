@@ -1,24 +1,33 @@
 #include "aliases.h"
 #include "utils.h"
 #include "testbench.h"
+#include "timeme.h"
 
 int main() {
     #if TIME
-        time_batch_FloydWarshall(800, 1600, "random"); // 50, 100, 200, 300, 400, 500, 600, 800
-        time_batch_FloydWarshall(810, 0, "aimn91_synth"); // 30, 60, 90, 120, 150, 210, 300, 390, 510, 630, 810
-        time_batch_FloydWarshall(50, 50, "complete");
+        // Open a stream
+        std::fstream csv;
+        csv.open(TIMEME_CSV, std::fstream::in | std::fstream::out | std::fstream::app);
+        if(!csv.is_open()) {
+            std::cout << "Something went wrong with the .csv file!" << std::endl;
+            return 1;
+        }
+        
+        timeme_decrease(750, 750, 250, "random", csv);
+        timeme_decrease(750, 1500, 250, "random", csv);
+        timeme_decrease(750, 2250, 250, "random", csv);
+        timeme_decrease(750, 3000, 250, "random", csv);
+        timeme_decrease(750, 4000, 250, "random", csv);
+        timeme_decrease(750, 5000, 250, "random", csv);
+        timeme_decrease(750, 6000, 250, "random", csv);
+        timeme_decrease(750, 8000, 250, "random", csv);
+        timeme_decrease(750, 10000, 250, "random", csv);
+        timeme_decrease(750, 12000, 250, "random", csv);
+        timeme_decrease(750, 14000, 250, "random", csv);
+        // timeme_length(750, , 250, "random", csv);
+        // timeme_length(750, , 250, "random", csv);
 
-        time_batch_dijkstra(800, 1600, "random"); // 50, 100, 200, 300, 400, 500, 600, 800
-        time_batch_dijkstra(810, 0, "aimn91_synth"); // 30, 60, 90, 120, 150, 210, 300, 390, 510, 630, 810
-        time_batch_dijkstra(50, 50, "complete");
-
-        time_batch_AIMN91(800, 1600, "random"); // 50, 100, 200, 300, 400, 500, 600, 800
-        time_batch_AIMN91(810, 0, "aimn91_synth"); // 30, 60, 90, 120, 150, 210, 300, 390, 510, 630, 810
-        time_batch_AIMN91(50, 50, "complete");
-
-        timeRandom(100, 200); // 50, 100, 200, 300, 400, 500, 600, 800
-        timeAIMN91_synthetic_graph(210); // 30, 60, 90, 120, 150, 210, 300, 390, 510, 630, 810
-        timeComplete(100, 9700); // 50, 100, 200, 300, 400, 500, 600
+        csv.close();
     #endif
     #if INTERACTIVE
         cli();

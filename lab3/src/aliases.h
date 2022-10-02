@@ -23,14 +23,15 @@
 #define MAX_C 100 // Max cost of an edge
 #define MIN_C 1 // Min cost of an edge
 
-#define INTERACTIVE true
-#define VISUALIZE true
-#define TIME false
+#define INTERACTIVE false
+#define VISUALIZE false
+#define TIME true
 #define DEBUG false
 
 #define GRAPHVIZ_FILE "out/AIMN91_graph.dot"
 #define TIMES_FILE "out/times.csv"
 #define TIMES_BATCH "out/times_batch.csv"
+#define TIMEME_CSV "out/timeme.csv"
 
 #if VISUALIZE
     #include <boost/graph/graphviz.hpp>
@@ -70,6 +71,7 @@ struct EdgeInfo {
 typedef boost::property_map<Graph, DLTree<Vertex> VertexInfo::*>::type Vertex_desc_pmap;
 typedef boost::property_map<Graph, DLTree<Vertex> VertexInfo::*>::type Vertex_anc_pmap;
 
+typedef boost::property_map<Graph, unsigned int EdgeInfo::*>::type Edge_cost_pmap;
 #if VISUALIZE
     typedef boost::property_map<Graph, std::string EdgeInfo::*>::type Edge_color_pmap;
 #endif
