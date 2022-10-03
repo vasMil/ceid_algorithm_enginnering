@@ -73,14 +73,45 @@ def plot_Floyd_AIMN91(df: pd.DataFrame, typeOfGraph: str):
     fig.savefig("../out/plot4_" + typeOfGraph + "_batch")
 
 
+def timeme_plot(df: pd.DataFrame, typeOfGraph: str, operation: str, numberOfNodes: int):
+    print("\n\n*********************** " + typeOfGraph.upper() + " - " + operation.upper() + " ***********************")
+    # Extract the information you want to plot from the df
+    graphDf = df.loc[df["typeOfGraph"] == typeOfGraph]
+    operGraphDf = graphDf.loc[graphDf["operation"] == operation]
+    operGraphDf = operGraphDf.loc[graphDf["numberOfNodes"] == numberOfNodes]
+    operGraphDf = operGraphDf.drop(columns=["numberOfNodes", "typeOfGraph", "operation"])
+    # Print the points
+    print(operGraphDf.groupby(["numberOfEdges", "algorithm"]).mean())
+    algOperGraphDf = operGraphDf.groupby("algorithm")
+    # Configure the plot
+    fig, (ax) = plt.subplots(1,1, figsize=(15,15))
+    ax.set_title(typeOfGraph)
+    ax.set(xlabel="Number of edges", ylabel="Time (ns)")
+    ax.ticklabel_format(axis='x', style="scientific", useMathText=True)
+    ax.ticklabel_format(axis='y', style="scientific", useMathText=True)
+    for alg in ["AIMN91", "DIJKSTRA"]:
+        algDf = algOperGraphDf.get_group(alg).reset_index(drop=True)
+        algDf.plot(x="numberOfEdges", y="time", ax=ax, label=alg, style='o-')
+    ax.legend()
+    fig.savefig("../out/timeme_plot4_" + typeOfGraph + "_graph" + "_" + operation + "_" + str(numberOfNodes))
+
+
 pd.set_option('display.max_rows', None)
 
-df = pd.read_csv("../out/times.csv")
-plotOperations(df, "aimn91_synth")
-plotOperations(df, "random")
-plotOperations(df, "complete")
+# df = pd.read_csv("../out/times.csv")
+# plotOperations(df, "aimn91_synth")
+# plotOperations(df, "random")
+# plotOperations(df, "complete")
 
-df = pd.read_csv("../out/times_batch.csv")
-plot_Floyd_AIMN91(df, "aimn91_synth")
-plot_Floyd_AIMN91(df, "random")
-plot_Floyd_AIMN91(df, "complete")
+# df = pd.read_csv("../out/times_batch.csv")
+# plot_Floyd_AIMN91(df, "aimn91_synth")
+# plot_Floyd_AIMN91(df, "random")
+# plot_Floyd_AIMN91(df, "complete")
+
+df = pd.read_csv("../out/timeme.csv")
+timeme_plot(df, "random", "add", 750)
+timeme_plot(df, "random", "length", 750)
+timeme_plot(df, "random", "minpath", 750)
+timeme_plot(df, "random", "decrease", 750)
+timeme_plot(df, "random", "add-length", 750)
+plotOperations(df, "aimn91_synth")
